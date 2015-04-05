@@ -1,0 +1,25 @@
+package com.mintfish.ringpet.agreement;
+
+import android.os.Bundle;
+import android.os.Handler;
+import android.support.v4.app.Fragment;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+
+import com.mintfish.ringpet.R;
+
+public class AgreementMemberFragment extends Fragment {
+	Handler mHandler = new Handler();
+	@Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
+    {
+        return inflater.inflate(R.layout.activity_agreement_part2, null);
+    }
+     
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState)
+    {
+        super.onActivityCreated(savedInstanceState);     
+    }
+}

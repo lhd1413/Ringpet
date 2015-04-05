@@ -1,0 +1,54 @@
+package com.mintfish.ringpet.model;
+
+public class NoticeModel {
+	private String _notice_id;
+	private String _notice_title;
+	private String _notice_content;
+	private String _notice_reg_date;
+	
+	public NoticeModel()
+	{
+		
+	}
+	
+	public void setNoticeId(String val)
+	{
+		_notice_id = val;
+	}
+	
+	public String getNoticeId()
+	{
+		return _notice_id;
+	}
+	
+	public void setNoticeTitle(String val)
+	{
+		_notice_title = val;
+	}
+	
+	public String getNoticeTitle()
+	{
+		return _notice_title;
+	}
+	
+	public void setNoticeContent(String val)
+	{
+		_notice_content = val;
+	}
+	
+	public String getNoticeContent()
+	{
+		return _notice_content;
+	}
+	
+	public void setNoticeRegDate(String val)
+	{
+		_notice_reg_date = val;
+	}
+	
+	public String getNoticeRegDate()
+	{
+		return _notice_reg_date;
+	}
+	
+}

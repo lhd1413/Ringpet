@@ -1,0 +1,52 @@
+package com.mintfish.ringpet.signup;
+
+import android.app.Activity;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.LinearLayout;
+
+import com.mintfish.ringpet.R;
+import com.mintfish.ringpet.UserGuidePetsitterActivity;
+
+public class SignupTypeActivity extends Activity {
+	@Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_member_type);
+        
+        LinearLayout lv = (LinearLayout) findViewById(R.id.signup_layout_1);
+        LinearLayout plv = (LinearLayout) findViewById(R.id.signup_layout_2);
+        
+        lv.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v) {
+				Intent intent = new Intent(SignupTypeActivity.this, SignupPetSitterInformationActivity.class);
+				startActivity(intent);
+			}
+        });
+        
+        plv.setOnClickListener(new View.OnClickListener() {
+        	public void onClick(View v) {
+				SharedPreferences pref =getSharedPreferences("Pref", Activity.MODE_PRIVATE);
+				String distin = pref.getString("pet_guide_data", null);
+				if(distin==null)
+				{
+					SharedPreferences.Editor editor=pref.edit();
+					editor.putString("pet_guide_data", "used");
+					editor.commit();
+					
+					Intent intent=new Intent(SignupTypeActivity.this,UserGuidePetsitterActivity.class);//가이드페이지
+					startActivity(intent);
+				}
+				else
+				{
+					Intent intent=new Intent(SignupTypeActivity.this,SignupSitterIntroductionActivity.class);
+					startActivity(intent);
+				}
+				// TODO Auto-generated method stub
+				
+			}
+		});
+	}
+}

@@ -1,0 +1,61 @@
+package com.mintfish.ringpet;
+
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.os.Bundle;
+import android.os.Handler;
+import android.preference.PreferenceManager;
+
+import com.mintfish.ringpet.page.MainFragment;
+
+import android.support.v4.app.FragmentActivity;
+
+public class FrameActivity extends FragmentActivity implements MainFragment.OnFramgeChangeListener{
+	Handler mHandler = new Handler();
+	public String id = "";
+	public String pw = "";
+	public String name = "";
+	public String photo = "";
+	public String version="1.5";
+	
+	@Override
+	    protected void onCreate(Bundle savedInstanceState) {
+			super.onCreate(savedInstanceState);
+			id = getIntent().getStringExtra("id");
+			pw = getIntent().getStringExtra("pw");
+			name = getIntent().getStringExtra("name");
+			photo = getIntent().getStringExtra("photo");
+			
+			SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
+	        String saved_id = pref.getString("id", null);
+	        String saved_pw = pref.getString("pw", null);
+	        
+	        if(saved_id != null)
+	        {
+	        	id = saved_id;
+	        	pw = saved_pw;
+	        }
+			
+	        Boolean noscreen = getIntent().getBooleanExtra("noscreen", false);
+	        if(noscreen == false)
+	        	startActivity(new Intent(this, SplashScreenActivity.class));
+	        setContentView(R.layout.activity_frame);
+	    }
+	@Override
+	public void onLoad() {
+	
+	}
+	
+	@Override
+	public void onClose() {
+		SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+		SharedPreferences.Editor editor = pref.edit();
+		editor.clear();
+		editor.commit();
+		Intent intent = new Intent(FrameActivity.this, MainActivity.class);		
+		startActivity(intent);
+		finish();
+		
+		
+	}
+}

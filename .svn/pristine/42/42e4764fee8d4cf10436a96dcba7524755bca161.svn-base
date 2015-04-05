@@ -1,0 +1,50 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#f4f4f4"
+    android:orientation="vertical" >
+    <ScrollView
+        android:id="@+id/scrollView1"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" 
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical" >
+
+            <TextView
+                android:id="@+id/im_notice_detail_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                android:layout_marginLeft="15dp"
+                android:layout_marginRight="15dp"
+                android:layout_marginTop="16dp"
+                android:text="@string/sample_notice"
+                android:textColor="#4d4d4d"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+			<LinearLayout
+			    android:layout_width="match_parent"
+			    android:layout_height="1dp"
+			    android:background="#e5e5e5"/>
+
+			<TextView
+			    android:id="@+id/im_notice_detail_description"
+			    android:layout_width="wrap_content"
+			    android:layout_height="wrap_content"
+			    android:layout_marginLeft="15dp"
+			    android:layout_marginRight="12dp"
+			    android:layout_marginTop="16dp"
+			    android:text="@string/sample_str_notice_detail"
+			    android:textColor="#4d4d4d"
+			    android:textSize="14sp" />
+
+        </LinearLayout>
+    </ScrollView>
+
+</LinearLayout>

@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#313034" >
+
+    <LinearLayout
+        android:id="@+id/signup_layout_2"
+        android:layout_width="match_parent"
+        android:layout_height="108dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:orientation="horizontal"
+        android:background="#B14A89" >
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:paddingLeft="27dp" >
+
+            <TextView
+                android:id="@+id/textView1"
+                android:layout_width="wrap_content"
+                android:textStyle="bold"
+                android:layout_height="wrap_content"
+                android:text="@string/sign_type1"
+                android:textColor="#ffffff"
+                android:textSize="19sp" />
+
+            <TextView
+                android:id="@+id/textView2"
+                android:layout_marginTop="5dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/join_sitter_noti"
+                android:textColor="#ffffff"
+                android:textSize="14sp" />
+            
+        </LinearLayout>
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="27dp"
+            android:layout_gravity="center"
+            android:src="@drawable/sm_signup_btn_arrow"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/signup_layout_1"
+        android:layout_width="match_parent"
+        android:layout_height="108dp"
+        android:layout_above="@+id/signup_layout_2"
+        android:background="#CF6BA9"
+        android:orientation="horizontal"
+        android:layout_alignParentLeft="true" >
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:paddingLeft="27dp" >
+
+            <TextView
+                android:id="@+id/textView1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/sign_type2"
+                android:textColor="#ffffff"
+                android:textSize="19sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/textView2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:text="@string/join_sitter_noti2"
+                android:textColor="#ffffff"
+                android:textSize="14sp" />
+            
+        </LinearLayout>
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="27dp"
+            android:layout_gravity="center"
+            android:src="@drawable/sm_signup_btn_arrow"/>
+    </LinearLayout>
+
+    <ImageView
+        android:id="@+id/title_img"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="14dp"
+        android:src="@drawable/lg_img_top" />
+
+</RelativeLayout>

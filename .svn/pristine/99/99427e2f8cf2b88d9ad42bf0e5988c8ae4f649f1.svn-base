@@ -1,0 +1,196 @@
+package com.mintfish.ringpet.message;
+
+import java.util.ArrayList;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import com.koushikdutta.urlimageviewhelper.UrlImageViewHelper;
+import com.mintfish.ringpet.R;
+import com.mintfish.ringpet.model.ConverstationListModel;
+import com.mintfish.ringpet.model.ConverstationModel;
+import com.mintfish.ringpet.util.HttpGetRequest;
+
+import android.app.ProgressDialog;
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.os.Bundle;
+import android.os.Handler;
+import android.preference.PreferenceManager;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.ImageView;
+import android.widget.ListView;
+import android.widget.TextView;
+import android.widget.AdapterView.OnItemClickListener;
+
+public class MessageListFragment extends Fragment {
+	private String id = "";
+	private String pw = "";
+	Handler mHandler = new Handler();
+	private ProgressDialog dialog;
+	
+	private ArrayList<ConverstationListModel> lists;
+	@Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
+    {
+		Bundle b = getActivity().getIntent().getExtras();
+		if(b == null)
+		{
+			SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getActivity().getBaseContext());
+	        String saved_id = pref.getString("id", null);
+	        String saved_pw = pref.getString("pw", null);
+	        
+	        if(saved_id != null)
+	        {
+	        	id = saved_id;
+	        	pw = saved_pw;
+	        }
+	        
+		}else{
+			id = b.getString("id");
+			pw = b.getString("pw");
+			
+			if(id == null)
+			{
+				SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getActivity().getBaseContext());
+		        String saved_id = pref.getString("id", null);
+		        String saved_pw = pref.getString("pw", null);	        
+		        if(saved_id != null)
+		        {
+		        	id = saved_id;
+		        	pw = saved_pw;
+		        }
+			}
+		}
+        return inflater.inflate(R.layout.activity_message_list, null);
+    }
+     
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState)
+    {
+    	
+        super.onActivityCreated(savedInstanceState);
+        final ImageView iv = (ImageView)this.getActivity().findViewById(R.id.title_bar);
+		final TextView tv = (TextView)this.getActivity().findViewById(R.id.title_bar_img);
+		iv.setVisibility(View.INVISIBLE);
+		tv.setVisibility(View.VISIBLE);
+		tv.setText(R.string.title_message);
+		
+		loadData();
+    }
+    
+    private void loadData()
+    {
+    	dialog = ProgressDialog.show(getActivity(), "", "불러오는 중입니다. 잠시만 기다려주십시오.", true);
+    	lists = new ArrayList<ConverstationListModel>();
+    	new Thread() {
+    		public void run() {
+         	   	try
+ 	           	{
+         	   		String path = "http://api.ringpet.com/api/getConverstationList?id="+id+"&pw="+pw;
+ 	           		HttpGetRequest hgr = new HttpGetRequest();
+ 	                String url = hgr.getHTML(path);
+ 	                try {
+ 	                    JSONObject response = new JSONObject(url);
+ 	                    JSONObject channel = response.getJSONObject("channel");
+ 	                    int code = channel.getInt("result");
+ 	                    JSONArray array = channel.getJSONArray("item");
+	                    int length = array.length();
+	                    lists = new ArrayList<ConverstationListModel>();
+	                    for(int i = 0; i < length; i++)
+	                    {
+	                    	ConverstationListModel lModel = new ConverstationListModel();
+	                    	JSONObject item = array.getJSONObject(i);
+	                    	lModel.setUserId(item.getString("user_id").toString());
+	                    	lModel.setRoomId(item.getString("rm_id").toString());
+	                    	lModel.setUserName(item.getString("user_name").toString());
+	                    	lModel.setUserPhoto(item.getString("user_photo").toString());
+	                    	lModel.setMessageContent(item.getString("message_content").toString());
+	                    	lModel.setMessageRegDate(item.getString("message_reg_date").toString());
+	                    	lists.add(lModel);
+	                    }
+ 	                } catch (JSONException e) {
+ 	                    Log.d("jsonexception", e.toString());
+ 	                }
+
+ 	           	}catch(Exception e){
+ 	        		e.printStackTrace();
+ 	        	}
+ 	        		
+         	   mHandler.post(new Runnable() {
+         		  public void run() {
+         			 setListView();
+         		  }
+         	   });
+            }
+    	}.start();
+    }
+    
+    private void setListView()
+    {
+    	dialog.hide();
+    	dialog.dismiss();
+    	ListView listView = (ListView)getView().findViewById(R.id.listView1);
+        TestAdapter b1_adapter = new TestAdapter(this.getActivity(), R.layout.item_message, lists);
+        listView.setOnItemClickListener(new OnItemClickListener() {
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id)                
+            {
+            	ConverstationListModel model = lists.get(position);
+            	MessageConverstationFragment sif = new MessageConverstationFragment();
+            	sif.SetId(model.getUserId(), model.getUserPhoto());
+            	FragmentTransaction ft = getFragmentManager().beginTransaction();
+				ft.replace(R.id.fragment1, sif);
+		        ft.setTransition(FragmentTransaction.TRANSIT_NONE);
+		        ft.addToBackStack(null);
+		        ft.commit();
+            }
+        });
+		listView.setAdapter(b1_adapter);
+    }
+    
+    
+    public class TestAdapter extends ArrayAdapter<ConverstationListModel>{
+    	public ArrayList<ConverstationListModel> items;
+    	private Context mcontext;
+    	
+    	public TestAdapter(Context context, int textViewResourceId, ArrayList<ConverstationListModel> items) {
+            super(context, textViewResourceId, items);
+            mcontext = context;
+    		this.items = items;
+    	}
+    	
+    	@Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            View v = convertView;
+            if (v == null) {
+            	ConverstationListModel model = lists.get(position);
+                LayoutInflater vi = (LayoutInflater)getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+                v = vi.inflate(R.layout.item_message, null);
+                
+                TextView user_name = (TextView) v.findViewById(R.id.im_mg_name);
+                TextView user_content = (TextView) v.findViewById(R.id.im_mg_description);
+                TextView user_date = (TextView) v.findViewById(R.id.im_mg_time);
+                ImageView img_photo = (ImageView) v.findViewById(R.id.im_mg_pic);
+                
+                user_name.setText(model.getUserName());
+                user_content.setText(model.getMessageContent());
+                
+                String array[] = model.getMessageRegDate().split(" ");
+                user_date.setText(array[0]);
+                
+                UrlImageViewHelper.setUrlDrawable(img_photo, "http://img.ringpet.com/"+model.getUserPhoto());
+            }
+            return v;
+        }
+    	
+    }
+
+}

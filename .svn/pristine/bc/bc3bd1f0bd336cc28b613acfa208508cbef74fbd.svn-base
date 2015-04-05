@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#313034"
+    android:orientation="vertical" >
+    <LinearLayout
+        android:layout_marginTop="48dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginLeft="49dp"
+        android:layout_marginRight="49dp"
+        android:layout_marginBottom="28dp"
+        android:orientation="vertical">
+        <ImageView
+            android:layout_gravity="center"
+            android:layout_width="258dp"
+            android:layout_height="258dp"
+            android:layout_marginBottom="17dp"
+            android:src="@drawable/lg_img_top" />
+        <LinearLayout
+	        android:layout_width="match_parent"
+	        android:layout_height="wrap_content"
+	        android:orientation="vertical" >
+
+            <EditText
+                android:id="@+id/lg_txt_id"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:background="@drawable/ps_bg_box_top"
+                android:ems="10"
+                android:singleLine="true"
+                android:padding="10dp"
+                android:textColor="#555555"
+                android:textColorHint="#aaaaaa"
+                android:textSize="17sp" >
+
+            </EditText>
+			<LinearLayout
+				android:layout_width="match_parent"
+				android:layout_height="1dp"
+				android:layout_marginLeft="1dp"
+				android:layout_marginRight="1dp"
+				android:background="#e5e5e5"/>
+			<RelativeLayout
+			    android:layout_width="match_parent"
+				android:layout_height="44dp">
+
+			    <EditText
+			        android:id="@+id/lg_txt_pw"
+			        android:layout_width="match_parent"
+			        android:layout_height="44dp"
+			        android:background="@drawable/ps_bg_box_bottom"
+			        android:ems="10"
+			        android:padding="10dp"
+			        android:password="true"
+			        android:singleLine="true"
+			        android:textColor="#555555"
+			        android:textColorHint="#aaaaaa"
+			        android:textSize="17sp" >
+	
+	            </EditText>
+			    <ImageView
+			        android:id="@+id/lg_img_search_pw"
+			        android:layout_width="wrap_content"
+			        android:layout_height="wrap_content"
+			        android:layout_alignParentRight="true"
+			        android:layout_centerVertical="true"
+			        android:layout_marginRight="13dp"
+			        android:src="@drawable/lg_btn_search_pw" />
+            </RelativeLayout>
+	        
+    	</LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/lg_btn"
+            android:gravity="center"
+            android:layout_width="fill_parent"
+            android:layout_height="49dp"
+            android:layout_marginTop="17dp"
+            android:background="@drawable/su_btn_pink"
+            android:orientation="vertical" >
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/login_btn"
+                android:textColor="#ffffff"
+                android:textSize="17sp" />
+
+        </LinearLayout>
+        
+        <LinearLayout
+            android:layout_marginTop="15dp"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content">
+            <CheckBox
+				            android:id="@+id/lg_img_chk"
+				            android:layout_gravity="center"
+				            android:layout_width="wrap_content"
+				            android:layout_height="wrap_content"
+				            android:button="@drawable/checkbox_service" />
+
+        
+
+            <TextView
+                android:layout_gravity="center"
+                android:layout_marginLeft="9dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/login_alert"
+                android:textColor="#ffffff"
+                android:textSize="15sp" />
+            
+        </LinearLayout>
+	</LinearLayout>
+
+	<LinearLayout
+	    android:layout_width="fill_parent"
+	    android:layout_height="wrap_content"
+	    android:layout_alignParentBottom="true"
+	    android:layout_alignParentLeft="true"
+	    android:layout_marginLeft="49dp"
+	    android:layout_marginRight="49dp"
+	    android:layout_marginBottom="28dp"
+	    android:gravity="center" >
+
+	    <TextView
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:layout_gravity="center"
+	        android:text="@string/login_not_account"
+	        android:textColor="#b1b1b1"
+	        android:textSize="13sp" />
+
+	    <TextView
+	        android:id="@+id/lg_btn_sign"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:text="@string/login_join"
+	        android:textColor="#fffef8"
+	        android:layout_marginLeft="7dp"
+	        android:textSize="13sp" />
+	</LinearLayout>
+
+</RelativeLayout>

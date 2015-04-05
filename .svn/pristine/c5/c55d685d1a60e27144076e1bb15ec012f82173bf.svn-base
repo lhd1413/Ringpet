@@ -1,0 +1,386 @@
+	package com.mintfish.ringpet.signup;
+
+import java.net.URLEncoder;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import com.mintfish.ringpet.MainActivity;
+import com.mintfish.ringpet.R;
+import com.mintfish.ringpet.util.HttpGetRequest;
+
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.ProgressDialog;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.DialogInterface.OnClickListener;
+import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
+import android.os.Bundle;
+import android.os.Handler;
+import android.preference.PreferenceManager;
+import android.provider.MediaStore;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.RadioGroup;
+
+public class SignupPetSitterPetActivity extends Activity {
+	
+	private String sitter_title = "";
+	private String sitter_introduce = "";
+	private String sitter_exp = "";
+	private int sitter_home_type = 0;
+	private int sitter_own_type = 0;
+	private int sitter_care_type = 0;	
+	private int sitter_chk_opt1 = 0;
+	private int sitter_fee_opt1 = 0;	
+	private int sitter_chk_opt2 = 0;
+	private int sitter_fee_opt2 = 0;	
+	private int sitter_chk_opt3 = 0;
+	private int sitter_fee_opt3 = 0;	
+	private int sitter_chk_opt4 = 0;
+	private int sitter_fee_opt4 = 0;	
+	private int sitter_chk_opt5 = 0;
+	private int sitter_fee_opt5 = 0;
+	
+	private String join_id;
+	private String join_pw;
+	private String join_name;
+	private String join_address;
+	private String join_number;	
+	
+	private boolean sitter = false;
+	
+	
+	private EditText pt_name;
+	private EditText pt_age;
+	private EditText pt_type;
+	private EditText pt_introduce;
+	private RadioGroup pt_sex;
+	private RadioGroup pt_size;
+	private RadioGroup pt_step1;
+	private RadioGroup pt_step2;
+	private RadioGroup pt_step3;
+	private RadioGroup pt_step4;
+	private String saved_id;
+	private String saved_pw;
+	private SharedPreferences pref;
+	Handler mHandler = new Handler();
+	private int RESULT_LOAD_IMAGE = 750;
+	private static final int CAMERA_REQUEST = 1888; 
+	
+	
+	@Override
+    protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_signup_pet);
+        pref = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+        saved_id = pref.getString("id", null);
+        saved_pw = pref.getString("pw", null);
+        
+        if(saved_id != null && saved_pw != null)
+        {
+        	doLogin(saved_id, saved_pw);
+        }
+        
+        sitter = getIntent().getBooleanExtra("isSitter", false);
+        sitter_title = getIntent().getStringExtra("title");
+        sitter_introduce = getIntent().getStringExtra("introduction");
+        sitter_exp = getIntent().getStringExtra("exp");
+        sitter_home_type = getIntent().getIntExtra("type1", 0);
+        sitter_own_type = getIntent().getIntExtra("type2", 0);
+        sitter_care_type = getIntent().getIntExtra("type3", 0);
+        sitter_chk_opt1 = getIntent().getIntExtra("chk1", 0);
+        sitter_chk_opt2 = getIntent().getIntExtra("chk2", 0);
+        sitter_chk_opt3 = getIntent().getIntExtra("chk3", 0);
+        sitter_chk_opt4 = getIntent().getIntExtra("chk4", 0);
+        sitter_chk_opt5 = getIntent().getIntExtra("chk5", 0);
+        sitter_fee_opt1 = getIntent().getIntExtra("fee1", 0);
+        sitter_fee_opt2 = getIntent().getIntExtra("fee2", 0);
+        sitter_fee_opt3 = getIntent().getIntExtra("fee3", 0);
+        sitter_fee_opt4 = getIntent().getIntExtra("fee4", 0);
+        sitter_fee_opt5 = getIntent().getIntExtra("fee5", 0);
+        
+        join_id = getIntent().getStringExtra("join_id");
+        join_pw = getIntent().getStringExtra("join_pw");
+        join_name = getIntent().getStringExtra("join_name");
+        join_address = getIntent().getStringExtra("join_address");
+        join_number = getIntent().getStringExtra("join_number");
+        
+        pt_name = (EditText) findViewById(R.id.pt_name);
+        pt_age = (EditText) findViewById(R.id.pt_age);
+        pt_type = (EditText) findViewById(R.id.pt_type);
+        pt_introduce = (EditText) findViewById(R.id.pt_introduce);
+        pt_sex = (RadioGroup) findViewById(R.id.pt_sex);
+        pt_size = (RadioGroup) findViewById(R.id.pt_size);
+        pt_step1 = (RadioGroup) findViewById(R.id.pt_step1);
+        pt_step2 = (RadioGroup) findViewById(R.id.pt_step2);
+        pt_step3 = (RadioGroup) findViewById(R.id.pt_step3);
+        pt_step4 = (RadioGroup) findViewById(R.id.pt_step4);
+        
+        pt_name.setText("");
+        pt_age.setText("");
+        pt_type.setText("");
+        pt_introduce.setText("");
+        
+        LinearLayout imageView = (LinearLayout) findViewById(R.id.lv_dog_profile);
+        imageView.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v) {
+				setFileUploadType();
+			}
+        });
+        
+        Button lv = (Button) findViewById(R.id.pt_comp);
+        lv.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v) {
+				
+				if(pt_name.getText().toString().equals("") || pt_age.getText().toString().equals("") || pt_type.getText().toString().equals(""))
+				{
+					showErrorAlert("빠짐없이 입력하였는지 확인하여 주십시오");
+				}else{
+					createPet();
+				}
+			}
+        });
+	}
+	
+	private void setFileUploadType()
+	{
+		final String [] items=new String []{"사진 촬영하기","앨범에서 선택","취소"};
+		AlertDialog.Builder builder=new AlertDialog.Builder(this);
+		builder.setTitle("사진 선택하기");
+
+		builder.setItems(items, new OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				if(which == 0)
+				{
+					Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE); 
+	                startActivityForResult(cameraIntent, CAMERA_REQUEST); 
+				}else if(which == 1){
+					Intent i = new Intent(Intent.ACTION_PICK,android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+					startActivityForResult(i, RESULT_LOAD_IMAGE);
+				}
+			}
+		});
+
+		builder.show();
+	}
+	
+	@Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == RESULT_LOAD_IMAGE && resultCode == RESULT_OK && null != data) {
+            Uri selectedImage = data.getData();
+            String[] filePathColumn = { MediaStore.Images.Media.DATA };
+            Cursor cursor = getContentResolver().query(selectedImage,filePathColumn, null, null, null);
+            cursor.moveToFirst();
+            int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
+            String picturePath = cursor.getString(columnIndex);
+            cursor.close();
+            ImageView imageView = (ImageView) findViewById(R.id.img_dog_profile);
+            imageView.setImageBitmap(BitmapFactory.decodeFile(picturePath));
+        }
+        
+        if (requestCode == CAMERA_REQUEST && resultCode == RESULT_OK) {  
+            Bitmap photo = (Bitmap) data.getExtras().get("data"); 
+            ImageView imageView = (ImageView) findViewById(R.id.img_dog_profile);
+            imageView.setImageBitmap(photo);
+        }  
+
+    }
+	
+	private void doLogin(final String id, final String pw)
+	   {
+		   final ProgressDialog dialog = ProgressDialog.show(this, "", "확인중입니다. 잠시만 기다려주십시오.", true);
+		   new Thread() {
+			   String name = "";
+	           String photo = "";
+	           int code = 0;
+	           Boolean login_success = false;
+	           public void run() {
+	        	   	try
+		           	{
+		           		String path = "http://api.ringpet.com/api/loginUser?id="+id+"&pw="+pw;
+		           		HttpGetRequest hgr = new HttpGetRequest();
+		                String url = hgr.getHTML(path);
+		                try {
+		                    JSONObject response = new JSONObject(url);
+		                    JSONObject channel = response.getJSONObject("channel");
+		                    String result_str = channel.getString("result").toString();
+		                    //des_str = channel.getString("description").toString();
+		                    JSONObject item = channel.getJSONObject("item");
+		                    name = item.getString("name").toString();
+		                    photo = item.getString("photo").toString();
+		                    code = Integer.parseInt(result_str);
+		
+		                } catch (JSONException e) {
+		                    Log.d("jsonexception", e.toString());
+		                }
+		
+		                if(code==400){
+		                	login_success = true;
+		                }
+		                else if(code==200){
+		                	login_success = false;
+		                }
+		           		
+		           	}catch(Exception e){
+		        		e.printStackTrace();
+		        	}
+		        		
+		        	mHandler.post(new Runnable() {
+		        		public void run() {
+		        			dialog.dismiss();
+		        			dialog.hide();
+		        		}
+		        	});
+	        }
+	    }.start();	
+	   }
+	
+	private void showErrorAlert(String message)
+	{
+	   AlertDialog.Builder builder = new AlertDialog.Builder(this);
+	   builder.setTitle("확인");
+	   builder.setMessage(message);
+	   builder.setNeutralButton("확인", new DialogInterface.OnClickListener() {
+           public void onClick(DialogInterface dialog, int whichButton) {                                        
+          }
+       });
+	   builder.show();
+	}
+	
+	private void createPet()
+	{
+		int radioButtonID = pt_sex.getCheckedRadioButtonId();
+		View radioButton = pt_sex.findViewById(radioButtonID);
+		final int pt_sel_sex = pt_sex.indexOfChild(radioButton);
+		
+		radioButtonID = pt_size.getCheckedRadioButtonId();
+		radioButton = pt_size.findViewById(radioButtonID);
+		final int pt_sel_size = pt_size.indexOfChild(radioButton);
+		
+		radioButtonID = pt_step1.getCheckedRadioButtonId();
+		radioButton = pt_step1.findViewById(radioButtonID);
+		final int pt_sel_step1 = pt_step1.indexOfChild(radioButton);
+		
+		radioButtonID = pt_step2.getCheckedRadioButtonId();
+		radioButton = pt_step2.findViewById(radioButtonID);
+		final int pt_sel_step2 = pt_step2.indexOfChild(radioButton);
+		
+		radioButtonID = pt_step3.getCheckedRadioButtonId();
+		radioButton = pt_step3.findViewById(radioButtonID);
+		final int pt_sel_step3 = pt_step3.indexOfChild(radioButton);
+		
+		radioButtonID = pt_step4.getCheckedRadioButtonId();
+		radioButton = pt_step4.findViewById(radioButtonID);
+		final int pt_sel_step4 = pt_step4.indexOfChild(radioButton);
+		
+		final ProgressDialog dialog = ProgressDialog.show(this, "", "확인중입니다. 잠시만 기다려주십시오.", true);
+		   new Thread() {
+	           int code = 0;
+	           Boolean join_success = false;
+	           public void run() {
+	        	   	try
+		           	{
+	        	   		
+	        	   		String path = "http://api.ringpet.com/api/registerMember?id="+join_id+"&pw="+join_pw+"&name="+URLEncoder.encode(join_name)+"&address="+URLEncoder.encode(join_address)+"&number="+join_number;
+		           		HttpGetRequest hgr = new HttpGetRequest();
+		                String url = hgr.getHTML(path);
+		                try {
+		                    JSONObject response = new JSONObject(url);
+		                    JSONObject channel = response.getJSONObject("channel");
+		                    String result_str = channel.getString("result").toString();
+		                    code = Integer.parseInt(result_str);
+		
+		                } catch (JSONException e) {
+		                    Log.d("jsonexception", e.toString());
+		                }
+		
+		                if(code==400){
+		                	join_success = true;
+		                }
+		                else if(code==200){
+		                	join_success = false;
+		                }
+	        	   		
+		                SharedPreferences.Editor editor = pref.edit();
+		    			editor.putString("id", join_id);
+		    			editor.putString("pw", join_pw);
+		    			editor.commit();
+		    			
+		    			path = "http://api.ringpet.com/api/registerPet?id="+join_id+"&pw="+join_pw+"&name="+URLEncoder.encode(pt_name.getText().toString())+"&age="+pt_age.getText().toString()+"&type="+URLEncoder.encode(pt_type.getText().toString())+"&introduce="+URLEncoder.encode(pt_introduce.getText().toString())+"&sex="+pt_sel_sex+"&size="+pt_sel_size+"&influence="+pt_sel_step1+"&crazy="+pt_sel_step2+"&sexual="+pt_sel_step3+"&heart="+pt_sel_step4;
+		           		hgr = new HttpGetRequest();
+		                url = hgr.getHTML(path);
+		                try {
+		                    JSONObject response = new JSONObject(url);
+		                    JSONObject channel = response.getJSONObject("channel");
+		                    String result_str = channel.getString("result").toString();
+		                    code = Integer.parseInt(result_str);
+		
+		                } catch (JSONException e) {
+		                    Log.d("jsonexception", e.toString());
+		                }
+		
+		                if(code==400){
+		                	join_success = true;
+		                }
+		                else if(code==200){
+		                	join_success = false;
+		                }
+		                
+		                if(sitter = true)
+		                {
+		                	path = "http://api.ringpet.com/api/registerSitter?id="+join_id+"&title="+URLEncoder.encode(sitter_title)+"&introduction="+URLEncoder.encode(sitter_introduce)+"&career="+URLEncoder.encode(sitter_exp)+"&sitter_house="+sitter_home_type+"&sitter_full_time="+sitter_care_type+"&sitter_house="+sitter_home_type+"&sitter_money="+sitter_fee_opt1+"&sitter_bath="+sitter_fee_opt2+"&sitter_walk="+sitter_fee_opt3+"&sitter_hair="+sitter_fee_opt4+"&sitter_pickup="+sitter_fee_opt5;
+			           		hgr = new HttpGetRequest();
+			                url = hgr.getHTML(path);
+			                try {
+			                    JSONObject response = new JSONObject(url);
+			                    JSONObject channel = response.getJSONObject("channel");
+			                    String result_str = channel.getString("result").toString();
+			                    code = Integer.parseInt(result_str);
+			
+			                } catch (JSONException e) {
+			                    Log.d("jsonexception", e.toString());
+			                }
+			
+			                if(code==400){
+			                	join_success = true;
+			                }
+			                else if(code==200){
+			                	join_success = false;
+			                }
+		                }
+		           		
+		           	}catch(Exception e){
+		        		e.printStackTrace();
+		        	}
+	        	   	
+		        	mHandler.post(new Runnable() {
+		        		public void run() {
+		        			dialog.dismiss();
+		        			dialog.hide();
+		        			
+		        			if(join_success == false)
+		        			{
+		        				showErrorAlert("펫 등록 절차 중 문제가 발생하였습니다. 다시한번 시도하여 주십시오.");
+		        			}else{
+		        				Intent intent = new Intent(SignupPetSitterPetActivity.this, MainActivity.class);
+		        				startActivity(intent);
+		        				finish();
+		        			}
+		        		}
+		        	});
+	        }
+	    }.start();	
+	}
+}

@@ -1,0 +1,77 @@
+package com.mintfish.ringpet.reservation;
+
+import java.util.ArrayList;
+import java.util.Calendar;
+
+import com.mintfish.ringpet.R;
+
+import android.content.Context;
+import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.ListView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.TextView;
+
+public class ReservationCompleteFragment extends Fragment {
+	
+	private String _name;
+	private String _due;
+	private String _money;
+	public void setData(String sittername, String due, String money)
+	{
+		_name = sittername;
+		_due = due;
+		_money = money;
+	}
+	
+	@Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
+    {
+        return inflater.inflate(R.layout.activity_reservation_thanks, null);
+    }
+	
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState)
+    {
+        super.onActivityCreated(savedInstanceState);
+        
+        TextView tv1 = (TextView) this.getActivity().findViewById(R.id.resv_comp_name);
+        TextView tv2 = (TextView) this.getActivity().findViewById(R.id.resv_comp_due);
+        TextView tv3 = (TextView) this.getActivity().findViewById(R.id.resv_comp_money);
+        
+        tv1.setText(_name);
+        tv2.setText(_due);
+        tv3.setText(_money);
+        
+        Button btn = (Button) this.getActivity().findViewById(R.id.resv_comp_btn);
+        btn.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				removeAllStack();
+				FragmentTransaction ft = getFragmentManager().beginTransaction();
+				ft.replace(R.id.fragment1, new ReservationRequestFragment());
+		        ft.setTransition(FragmentTransaction.TRANSIT_NONE);
+		        ft.addToBackStack("main");
+		        ft.commit();
+			}
+		});
+    }
+    
+    public void removeAllStack()
+    {
+    	FragmentManager fm = getActivity().getSupportFragmentManager();
+    	int cnt = fm.getBackStackEntryCount();
+        for(int i = 0; i < cnt; ++i) 	{    
+            fm.popBackStack();
+        }
+    }
+
+}

@@ -1,0 +1,153 @@
+package com.mintfish.ringpet.model;
+
+public class ListModel {
+	
+	private String _user_id;
+	private String _title;
+	private int _money;
+	private String _mapx;
+	private String _mapy;
+	private String _pic_home;
+	private String _photo;
+	private int _badge1;
+	private int _badge2;
+	private int _badge3;
+	private float _avg;
+	private int _avgcnt;
+	private int _distance;
+	
+	public ListModel() {
+		
+	}
+	
+	public void setUser_id(String value)
+	{
+		_user_id = value;
+	}
+	
+	public String getUser_id()
+	{
+		return _user_id;
+	}
+	
+	public void setTitle(String value)
+	{
+		_title = value;
+	}
+	
+	public String getTitle()
+	{
+		return _title;
+	}
+	
+	public void setMoney(int value)
+	{
+		_money = value;
+	}
+	
+	public int getMoney()
+	{
+		return _money;
+	}
+	
+	public void setMapx(String value)
+	{
+		_mapx = value;
+	}
+	
+	public String getMapx()
+	{
+		return _mapx;
+	}
+	
+	public void setMapy(String value)
+	{
+		_mapy = value;
+	}
+	
+	public String getMapy()
+	{
+		return _mapy;
+	}
+	
+	public void setPic_home(String value)
+	{
+		_pic_home = value;
+	}
+	
+	public String getPic_home()
+	{
+		return _pic_home;
+	}
+	
+	public void setPhoto(String value)
+	{
+		_photo = value;
+	}
+	
+	public String getPhoto()
+	{
+		return _photo;
+	}
+	
+	public void setBadge1(int value)
+	{
+		_badge1 = value;
+	}
+	
+	public int getBadge1()
+	{
+		return _badge1;
+	}
+	
+	public void setBadge2(int value)
+	{
+		_badge2 = value;
+	}
+	
+	public int getBadge2()
+	{
+		return _badge2;
+	}
+	
+	public void setBadge3(int value)
+	{
+		_badge3 = value;
+	}
+	
+	public int getBadge3()
+	{
+		return _badge3;
+	}
+	
+	public void setAvg(float value)
+	{
+		_avg = value;
+	}
+	
+	public float getAvg()
+	{
+		return _avg;
+	}
+	
+	public void setAvgCnt(int value)
+	{
+		_avgcnt = value;
+	}
+	
+	public int getAvgCnt()
+	{
+		return _avgcnt;
+	}
+	
+	public void setdistance(int value)
+	{
+		_distance = value;
+	}
+	
+	public int getdistance()
+	{
+		return _distance;
+	}
+	
+}

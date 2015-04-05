@@ -1,0 +1,38 @@
+package com.mintfish.ringpet.notice;
+
+import com.mintfish.ringpet.R;
+import com.mintfish.ringpet.model.NoticeModel;
+
+import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.TextView;
+
+public class NoticeDetailFragment extends Fragment {
+	private NoticeModel notice_model;
+	@Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
+    {
+        return inflater.inflate(R.layout.activity_notice_detail, null);
+    }
+	
+	public void setNoticeModel(NoticeModel nm)
+	{
+		notice_model = nm;
+		
+	}
+     
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState)
+    {
+        super.onActivityCreated(savedInstanceState);
+        TextView notice_title = (TextView) this.getActivity().findViewById(R.id.im_notice_detail_title);
+		TextView notice_description = (TextView) this.getActivity().findViewById(R.id.im_notice_detail_description);
+		String desc = notice_model.getNoticeContent().replace("<br/>", "\n");
+		notice_description.setSingleLine(false);
+		notice_title.setText(notice_model.getNoticeTitle());
+		notice_description.setText(desc);
+    }
+}

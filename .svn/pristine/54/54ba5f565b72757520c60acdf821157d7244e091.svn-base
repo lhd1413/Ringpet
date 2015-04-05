@@ -1,0 +1,691 @@
+package com.mintfish.ringpet.reservation;
+
+import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import com.koushikdutta.urlimageviewhelper.UrlImageViewHelper;
+import com.mintfish.ringpet.R;
+import com.mintfish.ringpet.agreement.AgreementMemberFragment;
+import com.mintfish.ringpet.agreement.AgreementRuleFragment;
+import com.mintfish.ringpet.signup.SignupPetSitterInformationActivity;
+import com.mintfish.ringpet.util.HttpGetRequest;
+
+import android.app.AlertDialog;
+import android.app.ProgressDialog;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.os.Bundle;
+import android.os.Handler;
+import android.preference.PreferenceManager;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
+import android.text.Html;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ListView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.TextView;
+
+public class ReservationStartFragment extends Fragment {
+	private TextView ls_start_date;
+	private TextView ls_end_date;
+	private LinearLayout ls_cal;
+	private int month = 0;
+	private int year = 0;
+	private Boolean start_sw;
+	private Boolean comp_sw;
+	
+	private int start_year;
+	private int start_month;
+	private int start_day;
+	
+	private int end_year;
+	private int end_month;
+	private int end_day;
+	
+	private int day_fee = 0;
+	private int service1_fee = -1;
+	private int service2_fee = -1;
+	private int service3_fee = -1;
+	private int service4_fee = -1;
+	private int total_fee = 0;
+	private boolean service1_checked = false;
+	private boolean service2_checked = false;
+	private boolean service3_checked = false;
+	private boolean service4_checked = false;
+	private String id = "";
+	private String pw = "";
+	private String sitter_id = "";
+	private String name = "";
+	Handler mHandler = new Handler();
+	private boolean agree1_check = false;
+	private boolean agree2_check = false;
+	
+	public void setMoney(String sid, String sitter_name, int day, int service1, int service2, int service3, int service4)
+	{
+		sitter_id = sid;
+		day_fee = day;
+		name = sitter_name;
+		service1_fee = service1;
+		service2_fee = service2;
+		service3_fee = service3;
+		service4_fee = service4;
+	}
+	
+	@Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
+    {
+		Bundle b = getActivity().getIntent().getExtras();
+		if(b == null)
+		{
+			SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getActivity().getBaseContext());
+	        String saved_id = pref.getString("id", null);
+	        String saved_pw = pref.getString("pw", null);
+	        
+	        if(saved_id != null)
+	        {
+	        	id = saved_id;
+	        	pw = saved_pw;
+	        }
+		}else{
+			id = b.getString("id");
+			pw = b.getString("pw");
+			
+			if(id == null)
+			{
+				SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getActivity().getBaseContext());
+		        String saved_id = pref.getString("id", null);
+		        String saved_pw = pref.getString("pw", null);	        
+		        if(saved_id != null)
+		        {
+		        	id = saved_id;
+		        	pw = saved_pw;
+		        }
+			}
+		}
+        
+        return inflater.inflate(R.layout.activity_reservation_start, null);
+    }
+	
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState)
+    {
+    	TextView agree_txt1 = (TextView) getActivity().findViewById(R.id.txt_agree1);
+    	TextView agree_txt2 = (TextView) getActivity().findViewById(R.id.txt_agree2);
+    	
+    	agree_txt1.setText(Html.fromHtml("<u>서약서</u>에 동의"));
+    	agree_txt2.setText(Html.fromHtml("<u>정책 및 약관</u>에 동의"));
+    	
+    	agree_txt1.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v) {
+				AgreementRuleFragment sif =  new AgreementRuleFragment();    			 
+				FragmentTransaction ft = getFragmentManager().beginTransaction();
+    			ft.replace(R.id.fragment1, sif);
+    			ft.setTransition(FragmentTransaction.TRANSIT_NONE);
+    			ft.addToBackStack(null);
+    			ft.commit();
+			}
+        });
+    	
+    	agree_txt2.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v) {
+				AgreementMemberFragment sif =  new AgreementMemberFragment();    			 
+				FragmentTransaction ft = getFragmentManager().beginTransaction();
+    			ft.replace(R.id.fragment1, sif);
+    			ft.setTransition(FragmentTransaction.TRANSIT_NONE);
+    			ft.addToBackStack(null);
+    			ft.commit();
+			}
+        });
+    	
+    	agree1_check = false;
+    	agree2_check = false;
+    	total_fee = 0;
+    	comp_sw = false;
+    	start_sw = false;
+        super.onActivityCreated(savedInstanceState);
+        Button rsbtn = (Button) getView().findViewById(R.id.rs_start_btn_comp);
+        rsbtn.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v) {
+				FragmentManager fm = getActivity().getSupportFragmentManager();
+				fm.popBackStack();
+			}
+        });
+        
+        ls_start_date = (TextView) this.getActivity().findViewById(R.id.start_sel_date);
+        ls_end_date = (TextView) this.getActivity().findViewById(R.id.end_sel_date);
+        ls_cal = (LinearLayout) this.getActivity().findViewById(R.id.calendar_view);
+        
+        ls_start_date.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				start_sw = true;
+				Calendar cal = Calendar.getInstance();
+		    	int year = cal.get(Calendar.YEAR);
+		    	int month = cal.get(Calendar.MONTH);
+		    	start_year = year;
+		    	start_month = month;
+		    	start_day = 0;
+				setCalendar(year, month);
+			}
+		});
+        
+        ls_end_date.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				start_sw = false;				
+		    	Calendar cal = Calendar.getInstance();
+		    	year = cal.get(Calendar.YEAR);
+		    	month = cal.get(Calendar.MONTH);
+		    	end_year = year;
+		    	end_month = month;
+		    	end_day = 0;
+				setCalendar(year, month);
+			}
+		});
+        
+        ImageView btn_left = (ImageView) this.getActivity().findViewById(R.id.ai_btn_left);
+        ImageView btn_right = (ImageView) this.getActivity().findViewById(R.id.ai_btn_right);
+        
+        btn_left.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				if(year == 0)
+				{
+					Calendar cal = Calendar.getInstance();
+					year = cal.get(Calendar.YEAR);
+					month = cal.get(Calendar.MONTH);
+				}
+				
+				month--;
+				if(month == -1)
+				{
+					month = 11;
+					year--;
+				}
+				
+				if(start_sw == false)
+				{
+					end_year = year;
+			    	end_month = month;
+				}
+				
+				setCalendar(year, month);
+			}
+		});
+        
+        btn_right.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				if(year == 0)
+				{
+					Calendar cal = Calendar.getInstance();
+					year = cal.get(Calendar.YEAR);
+					month = cal.get(Calendar.MONTH);
+				}
+				
+				month++;
+				if(month == 12)
+				{
+					month = 0;
+					year++;
+				}
+				
+				if(start_sw == false)
+				{
+					end_year = year;
+			    	end_month = month;
+				}
+				
+				
+				setCalendar(year, month);
+			}
+		});
+        
+        final CheckBox sv1_chk = (CheckBox) this.getActivity().findViewById(R.id.chk_service1);
+        final CheckBox sv2_chk = (CheckBox) this.getActivity().findViewById(R.id.chk_service2);
+        final CheckBox sv3_chk = (CheckBox) this.getActivity().findViewById(R.id.chk_service3);
+        final CheckBox sv4_chk = (CheckBox) this.getActivity().findViewById(R.id.chk_service4);
+        
+        final CheckBox ag1_chk = (CheckBox) this.getActivity().findViewById(R.id.agree_check1);
+        final CheckBox ag2_chk = (CheckBox) this.getActivity().findViewById(R.id.agree_check2);
+        
+        TextView sv1_lab = (TextView) this.getActivity().findViewById(R.id.service_money1);
+        TextView sv2_lab = (TextView) this.getActivity().findViewById(R.id.service_money2);
+        TextView sv3_lab = (TextView) this.getActivity().findViewById(R.id.service_money3);
+        TextView sv4_lab = (TextView) this.getActivity().findViewById(R.id.service_money4);
+        
+        if(service1_fee != -1)
+        {
+        	sv1_lab.setText(service1_fee+"원");
+        }else{
+        	sv1_chk.setEnabled(false);
+        }
+        
+        if(service2_fee != -1)
+        {
+        	sv2_lab.setText(service2_fee+"원");
+        }else{
+        	sv2_chk.setEnabled(false);
+        }
+        
+        if(service3_fee != -1)
+        {
+        	sv3_lab.setText(service3_fee+"원");
+        }else{
+        	sv3_chk.setEnabled(false);
+        }
+        
+        if(service4_fee != -1)
+        {
+        	sv4_lab.setText(service4_fee+"원");
+        }else{
+        	sv4_chk.setEnabled(false);
+        }
+        
+        sv1_chk.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				service1_checked = sv1_chk.isChecked();
+				calcFee();
+			}
+		});
+        
+        sv2_chk.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				service2_checked = sv2_chk.isChecked();
+				calcFee();
+			}
+		});
+        
+        sv3_chk.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				service3_checked = sv3_chk.isChecked();
+				calcFee();
+			}
+		});
+        
+        sv4_chk.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				service4_checked = sv4_chk.isChecked();
+				calcFee();
+			}
+		});
+        
+        ag1_chk.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				agree1_check = ag1_chk.isChecked();
+			}
+		});
+        
+        ag2_chk.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				agree2_check = ag2_chk.isChecked();
+			}
+		});
+        
+        Button resv_btn = (Button) this.getActivity().findViewById(R.id.rs_start_btn_comp);
+        resv_btn.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				sendReserve();
+			}
+		});
+     
+    }
+    
+    public void sendReserve()
+    {
+    	if(comp_sw == false)
+    	{
+    		showErrorAlert("맡기는날과 찾는날을 설정해 주세요.");
+    		return;
+    	}
+    	
+    	if(agree1_check == false || agree2_check == false)
+    	{
+    		showErrorAlert("약관에 동의해 주세요.");
+    		return;
+    	}
+    	
+    	final EditText ipt_text = (EditText) this.getActivity().findViewById(R.id.sitter_comment);
+    	final ProgressDialog dialog = ProgressDialog.show(getActivity(), "", "불러오는 중입니다. 잠시만 기다려주십시오.", true);
+    	new Thread() {
+    		String start_date = "";
+ 	   		String end_date = "";
+ 	   		String month_str = "";
+ 	   		String day_str = "";
+ 		   	public void run() {
+         	   	try
+ 	           	{
+         	   		if((start_month + 1) < 10)
+         	   			month_str =  "0"+Integer.toString((start_month + 1));
+         	   		else
+         	   			month_str = Integer.toString((start_month + 1));
+         	   		
+         	   		if(start_day < 10)
+         	   			day_str =  "0"+Integer.toString(start_day);
+         	   		else
+         	   			day_str = Integer.toString(start_day);
+         	   		
+         	   		start_date = start_year + "-" + month_str + "-" + day_str;
+         	   		
+	         	   	if((end_month + 1) < 10)
+	     	   			month_str =  "0"+Integer.toString((end_month + 1));
+	     	   		else
+	     	   			month_str = Integer.toString((end_month + 1));
+	     	   		
+	     	   		if(end_day < 10)
+	     	   			day_str =  "0"+Integer.toString(end_day);
+	     	   		else
+	     	   			day_str = Integer.toString(end_day);
+	     	   		
+	     	   		end_date = end_year + "-" + month_str + "-" + day_str;
+         	   		
+	     	   		int svc1 = 0;
+	     	   		int svc2 = 0;
+	     	   		int svc3 = 0;
+	     	   		int svc4 = 0;
+	     	   		
+	     	   		if(service1_checked == true)
+	     	   			svc1 = 1;
+	     	   		
+	     	   		if(service2_checked == true)
+	     	   			svc2 = 1;
+	     	   		
+	     	   		if(service3_checked == true)
+	     	   			svc3 = 1;
+         	   		
+	     	   		if(service4_checked == true)
+	     	   			svc4 = 1;
+	     	   		String path = "http://api.ringpet.com/api/addReservation?sitter_id="+sitter_id+"&id="+id+"&pw="+pw+"&start_date="+start_date+"&end_date="+end_date+"&message="+URLEncoder.encode(ipt_text.getText().toString())+"&fee="+Integer.toString(total_fee)+"&option1="+svc1+"&option2="+svc2+"&option3="+svc3+"&option4="+svc4;
+ 	           		HttpGetRequest hgr = new HttpGetRequest();
+ 	                String url = hgr.getHTML(path);
+ 	                try {
+ 	                    JSONObject response = new JSONObject(url);
+ 	                    JSONObject channel = response.getJSONObject("channel");
+ 	                    int code = channel.getInt("result");
+ 	                    
+ 	                } catch (JSONException e) {
+ 	                    Log.d("jsonexception", e.toString());
+ 	                }
+
+ 	           	}catch(Exception e){
+ 	        		e.printStackTrace();
+ 	        	}
+ 	        		
+         	   mHandler.post(new Runnable() {
+         		  public void run() {
+         			 ReservationCompleteFragment sif =  new ReservationCompleteFragment();
+         			 sif.setData(name, start_date+"~"+end_date, Integer.toString(total_fee)+"원");
+         			 FragmentTransaction ft = getFragmentManager().beginTransaction();
+         			 ft.replace(R.id.fragment1, sif);
+         			 ft.setTransition(FragmentTransaction.TRANSIT_NONE);
+         			 ft.addToBackStack(null);
+         			 ft.commit();
+         			 dialog.hide();
+         			 dialog.dismiss();
+         		  }
+         	   });
+            }
+    	}.start();	
+    	
+    }
+    
+    public void setCalendar(int year, int month)
+    {
+    	
+    	int[] days = new int[42];
+    	days[0] = R.id.ai_txt_day0;
+    	days[1] = R.id.ai_txt_day1;
+    	days[2] = R.id.ai_txt_day2;
+    	days[3] = R.id.ai_txt_day3;
+    	days[4] = R.id.ai_txt_day4;
+    	days[5] = R.id.ai_txt_day5;
+    	days[6] = R.id.ai_txt_day6;
+    	days[7] = R.id.ai_txt_day7;
+    	days[8] = R.id.ai_txt_day8;
+    	days[9] = R.id.ai_txt_day9;
+    	days[10] = R.id.ai_txt_day10;
+    	days[11] = R.id.ai_txt_day11;
+    	days[12] = R.id.ai_txt_day12;
+    	days[13] = R.id.ai_txt_day13;
+    	days[14] = R.id.ai_txt_day14;
+    	days[15] = R.id.ai_txt_day15;
+    	days[16] = R.id.ai_txt_day16;
+    	days[17] = R.id.ai_txt_day17;
+    	days[18] = R.id.ai_txt_day18;
+    	days[19] = R.id.ai_txt_day19;
+    	days[20] = R.id.ai_txt_day20;
+    	days[21] = R.id.ai_txt_day21;
+    	days[22] = R.id.ai_txt_day22;
+    	days[23] = R.id.ai_txt_day23;
+    	days[24] = R.id.ai_txt_day24;
+    	days[25] = R.id.ai_txt_day25;
+    	days[26] = R.id.ai_txt_day26;
+    	days[27] = R.id.ai_txt_day27;
+    	days[28] = R.id.ai_txt_day28;
+    	days[29] = R.id.ai_txt_day29;
+    	days[30] = R.id.ai_txt_day30;
+    	days[31] = R.id.ai_txt_day31;
+    	days[32] = R.id.ai_txt_day32;
+    	days[33] = R.id.ai_txt_day33;
+    	days[34] = R.id.ai_txt_day34;
+    	days[35] = R.id.ai_txt_day35;
+    	days[36] = R.id.ai_txt_day36;
+    	days[37] = R.id.ai_txt_day37;
+    	days[38] = R.id.ai_txt_day38;
+    	days[39] = R.id.ai_txt_day39;
+    	days[40] = R.id.ai_txt_day40;
+    	days[41] = R.id.ai_txt_day41;
+    	
+    	
+    	for(int i = 0; i < 42; i++)
+    	{
+    		TextView tv = (TextView) this.getActivity().findViewById(days[i]);
+    		tv.setText("");
+    	}
+    	
+    	TextView title_month = (TextView) this.getActivity().findViewById(R.id.ai_title_month);
+    	title_month.setText((month+1)+"월 "+year+"년");
+    	
+    	int day = getFirstDay(1, month, year);
+    	
+    	int monthMaxDays = getMaxDays(0, (month+1), year);
+    	
+    	for(int i = 0; i < monthMaxDays; i++)
+    	{
+    		TextView tmp_txt = (TextView) this.getActivity().findViewById(days[(day+i)]);
+    		tmp_txt.setText(Integer.toString((i+1)));
+    		tmp_txt.setOnClickListener(new View.OnClickListener() {
+    			@Override
+    			public void onClick(View v) {
+    				String theText =  ((TextView)v).getText().toString();
+
+    				if(start_sw == false)
+    				{
+    					end_day = Integer.parseInt(theText);
+    				}else{
+    					start_day = Integer.parseInt(theText);
+    				}
+    				check_variable();
+    			}
+    		});
+    	}
+    	
+    	ls_cal.setVisibility(View.VISIBLE);
+    	
+    }
+    
+    private void check_variable()
+    {
+    	if(start_sw == true)
+    	{
+    		Calendar now_cal = Calendar.getInstance();
+    		Calendar start_cal = new GregorianCalendar();
+    		start_cal.set(Calendar.DATE, start_day);
+    		start_cal.set(Calendar.MONTH, start_month);
+    		start_cal.set(Calendar.YEAR, start_year);
+    		comp_sw = false;
+    		end_year = 0;
+    		end_month = 0;
+    		end_day = 0;
+    		
+    		ls_end_date.setText("찾는날을 선택해주세요");
+    		
+    		if(now_cal.getTimeInMillis() > start_cal.getTimeInMillis())
+    		{
+    			start_day = 0;
+    			showErrorAlert("맡기는 날은 오늘 이후에 지정 가능합니다.");
+    		}else{
+    			start_sw = false;
+    			ls_start_date.setText((start_month+1)+"월 "+start_day+"일");
+    			ls_cal.setVisibility(View.GONE);
+    		}
+    	}else{
+    		Calendar now_cal = new GregorianCalendar();
+    		now_cal.set(Calendar.DATE, end_day);
+    		now_cal.set(Calendar.MONTH, end_month);
+    		now_cal.set(Calendar.YEAR, end_year);
+    		Calendar start_cal = new GregorianCalendar();
+    		start_cal.set(Calendar.DATE, start_day);
+    		start_cal.set(Calendar.MONTH, start_month);
+    		start_cal.set(Calendar.YEAR, start_year);
+    		comp_sw = false;
+    		
+    		if(now_cal.getTimeInMillis() < start_cal.getTimeInMillis())
+    		{
+    			start_day = 0;
+    			showErrorAlert("찾는 날은 맡기는날 이후에 가능합니다.");
+    		}else{
+    			comp_sw = true;
+    			start_sw = true;
+    			ls_end_date.setText((end_month+1)+"월 "+end_day+"일");
+    			ls_cal.setVisibility(View.GONE);
+    			calcFee();
+    		}
+    	}
+    }
+    
+    private void calcFee()
+    {
+    	if(comp_sw == true)
+    	{
+    		total_fee = 0;
+    		
+    		if(service1_checked == true)
+    		{
+    			total_fee += service1_fee;
+    		}
+    		
+    		if(service2_checked == true)
+    		{
+    			total_fee += service2_fee;
+    		}
+    		
+    		if(service3_checked == true)
+    		{
+    			total_fee += service3_fee;
+    		}
+    		
+    		if(service4_checked == true)
+    		{
+    			total_fee += service4_fee;
+    		}
+    		
+    		Calendar now_cal = new GregorianCalendar();
+    		now_cal.set(Calendar.DATE, end_day);
+    		now_cal.set(Calendar.MONTH, end_month);
+    		now_cal.set(Calendar.YEAR, end_year);
+    		now_cal.set(Calendar.HOUR, 23);
+    		now_cal.set(Calendar.MINUTE, 59);
+    		now_cal.set(Calendar.SECOND, 59);
+    		Calendar start_cal = new GregorianCalendar();
+    		start_cal.set(Calendar.DATE, start_day);
+    		start_cal.set(Calendar.MONTH, start_month);
+    		start_cal.set(Calendar.YEAR, start_year);
+    		start_cal.set(Calendar.HOUR, 0);
+    		start_cal.set(Calendar.MINUTE, 0);
+    		start_cal.set(Calendar.SECOND, 0);
+    		long diff = now_cal.getTimeInMillis() - start_cal.getTimeInMillis(); 
+    		long days = diff / (24 * 60 * 60 * 1000);
+    		
+    		total_fee += (days * day_fee);
+    		TextView tf_view = (TextView) this.getActivity().findViewById(R.id.service_total_fee);
+    		tf_view.setText(total_fee+"원");
+    	}
+    }
+    
+    private void showErrorAlert(String message)
+	{
+	   AlertDialog.Builder builder = new AlertDialog.Builder(this.getActivity());
+	   builder.setTitle("확인");
+	   builder.setMessage(message);
+	   builder.setNeutralButton("확인", new DialogInterface.OnClickListener() {
+           public void onClick(DialogInterface dialog, int whichButton) {                                        
+          }
+       });
+	   builder.show();
+	}
+        
+    public int getMaxDays(int day, int month, int year)
+    {
+    	Calendar cal = new GregorianCalendar();
+        cal.set(Calendar.DATE, day);
+        cal.set(Calendar.MONTH, month);
+        cal.set(Calendar.YEAR, year);
+        
+        return cal.getActualMaximum(Calendar.DAY_OF_MONTH);
+    }
+    
+    public int getFirstDay(int day, int month, int year)
+    {
+        Calendar cal = new GregorianCalendar();
+        cal.set(Calendar.DATE, day);
+        cal.set(Calendar.MONTH, month);
+        cal.set(Calendar.YEAR, year);
+        cal.set(Calendar.DAY_OF_MONTH, 1);
+        switch (cal.get(Calendar.DAY_OF_WEEK)) {
+            case Calendar.SUNDAY:
+                return 0;
+            case Calendar.MONDAY:
+                return 1;
+            case Calendar.TUESDAY:
+                return 2;
+            case Calendar.WEDNESDAY:
+                return 3;
+            case Calendar.THURSDAY:
+                return 4;
+            case Calendar.FRIDAY:
+                return 5;
+            case Calendar.SATURDAY:
+                return 6;
+        }
+        return 0;
+    }
+    
+    
+
+}

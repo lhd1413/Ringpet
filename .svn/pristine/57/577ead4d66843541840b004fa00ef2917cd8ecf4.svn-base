@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+   	<LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="81dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginBottom="6dp"
+        android:background="@drawable/ps_bg_box"
+        android:orientation="vertical" >
+		<LinearLayout
+		    android:layout_width="match_parent"
+		    android:layout_height="wrap_content">
+	        <ImageView
+	            android:id="@+id/im_mg_pic"
+	            android:layout_width="36dp"
+	            android:layout_height="36dp"
+	            android:layout_marginTop="10dp"
+	            android:layout_marginLeft="10dp"
+	            android:src="@drawable/test_pic_people" />
+	        <LinearLayout
+	            android:layout_width="match_parent"
+	            android:layout_height="wrap_content"
+	            android:layout_marginLeft="8dp"
+	            android:layout_weight="1"
+	            android:orientation="vertical" >
+	            <LinearLayout
+	                android:layout_width="wrap_content"
+	                android:layout_height="wrap_content"
+	                android:layout_marginTop="13dp">
+
+		            <TextView
+		                android:id="@+id/im_mg_name"
+		                android:layout_width="wrap_content"
+		                android:layout_height="wrap_content"
+		                android:text="@string/test_nickname"
+		                android:layout_gravity="center"
+		                android:textColor="#4d4d4d"
+		                android:textSize="15sp" />
+
+		            <ImageView
+		                android:id="@+id/im_mg_stat"
+		                android:layout_width="wrap_content"
+		                android:layout_height="wrap_content"
+		                android:layout_gravity="center"
+		                android:src="@drawable/ch_img_on" />
+
+	            </LinearLayout>
+	            <TextView
+	                android:id="@+id/im_mg_description"
+	                android:layout_width="wrap_content"
+	                android:layout_height="wrap_content"
+	                android:singleLine="true"
+	                android:text="@string/sample_str_list"
+	                android:textColor="#7d7d7d"
+	                android:textSize="14sp" />
+	        </LinearLayout>
+	        <LinearLayout
+	            android:layout_width="wrap_content"
+	            android:layout_height="wrap_content">
+	            <TextView
+	                android:id="@+id/im_mg_time"
+	                android:layout_width="wrap_content"
+	                android:layout_height="wrap_content"
+	                android:layout_marginRight="12dp"
+	                android:layout_marginTop="12dp"
+	                android:text="@string/sample_str_time"
+	                android:textColor="#aeb1b3"
+	                android:textSize="12sp"
+	                android:textStyle="bold" />
+	        </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

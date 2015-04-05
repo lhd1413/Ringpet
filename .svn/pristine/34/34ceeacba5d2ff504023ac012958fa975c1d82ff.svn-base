@@ -1,0 +1,312 @@
+package com.mintfish.ringpet.message;
+
+import java.net.URLEncoder;
+import java.util.ArrayList;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import com.koushikdutta.urlimageviewhelper.UrlImageViewHelper;
+import com.mintfish.ringpet.R;
+import com.mintfish.ringpet.model.ConverstationModel;
+import com.mintfish.ringpet.util.HttpGetRequest;
+
+import android.app.ProgressDialog;
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.database.DataSetObserver;
+import android.os.Bundle;
+import android.os.Handler;
+import android.preference.PreferenceManager;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
+import android.text.InputType;
+import android.util.Log;
+import android.view.KeyEvent;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.View.OnKeyListener;
+import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.ListView;
+import android.widget.TextView;
+import android.widget.AdapterView.OnItemClickListener;
+
+public class MessageConverstationFragment extends Fragment {
+	
+	private String id = "";
+	private String pw = "";
+	private String to_id = "";
+	private String pic = "ringpet.png";
+	private int rm_id = 0;
+	Handler mHandler = new Handler();
+	private ArrayList<ConverstationModel> lists;
+	
+	@Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
+    {
+		Bundle b = getActivity().getIntent().getExtras();
+		if(b == null)
+		{
+			SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getActivity().getBaseContext());
+	        String saved_id = pref.getString("id", null);
+	        String saved_pw = pref.getString("pw", null);
+	        
+	        if(saved_id != null)
+	        {
+	        	id = saved_id;
+	        	pw = saved_pw;
+	        }
+		}else{
+			id = b.getString("id");
+			pw = b.getString("pw");
+			
+			if(id == null)
+			{
+				SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getActivity().getBaseContext());
+		        String saved_id = pref.getString("id", null);
+		        String saved_pw = pref.getString("pw", null);	        
+		        if(saved_id != null)
+		        {
+		        	id = saved_id;
+		        	pw = saved_pw;
+		        }
+			}
+		}
+        
+        return inflater.inflate(R.layout.activity_message_converstation, null);
+    }
+	
+	public void SetId(String val, String val2)
+	{
+		to_id = val;
+		pic = val2;
+	}
+     
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState)
+    {
+        super.onActivityCreated(savedInstanceState);
+        final ImageView iv = (ImageView)this.getActivity().findViewById(R.id.title_bar);
+		final TextView tv = (TextView)this.getActivity().findViewById(R.id.title_bar_img);
+		iv.setVisibility(View.INVISIBLE);
+		tv.setVisibility(View.VISIBLE);
+		tv.setText(R.string.title_message);
+		
+		new Thread() {
+    		public void run() {
+         	   	try
+ 	           	{
+         	   		String path = "http://api.ringpet.com/api/IsConverstation?id="+id+"&pw="+pw+"&to_id="+to_id;
+ 	           		HttpGetRequest hgr = new HttpGetRequest();
+ 	                String url = hgr.getHTML(path);
+ 	                try {
+ 	                    JSONObject response = new JSONObject(url);
+ 	                    JSONObject channel = response.getJSONObject("channel");
+ 	                    int code = channel.getInt("result");
+ 	                    if(code == 400)
+ 	                    {
+ 	                    	rm_id = channel.getInt("rm_id");
+ 	                    }
+ 	                    
+ 	                } catch (JSONException e) {
+ 	                    Log.d("jsonexception", e.toString());
+ 	                }
+
+ 	           	}catch(Exception e){
+ 	        		e.printStackTrace();
+ 	        	}
+ 	        		
+         	   mHandler.post(new Runnable() {
+         		  public void run() {
+         			  if(rm_id != 0)
+         			  {
+         				  getConverstaionList();
+         			  }
+         		  }
+         	   });
+            }
+    	}.start();
+    	
+    	final ImageView chk_img = (ImageView) this.getActivity().findViewById(R.id.send_img_btn);
+    	chk_img.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v)
+			{
+				sendConverstation();
+			}
+		});
+    	
+    	EditText edittext = (EditText) this.getActivity().findViewById(R.id.send_message_txt);
+    	edittext.setFocusableInTouchMode(true);
+    	edittext.requestFocus();
+    	edittext.setImeOptions(EditorInfo.IME_ACTION_SEND);
+    	edittext.setInputType(InputType.TYPE_CLASS_TEXT);
+    	edittext.setOnKeyListener(new OnKeyListener() {
+    	    public boolean onKey(View v, int keyCode, KeyEvent event) {
+    	        // If the event is a key-down event on the "enter" button
+    	        if ((event.getAction() == KeyEvent.ACTION_DOWN) && (keyCode == KeyEvent.KEYCODE_ENTER)) {
+    	        	sendConverstation();
+    	        	return true;
+    	        }
+    	        return false;
+    	    }
+    	});
+
+
+    }
+    
+    public void getConverstaionList()
+    {
+    	lists = new ArrayList<ConverstationModel>();
+    	new Thread() {
+    		public void run() {
+         	   	try
+ 	           	{
+         	   		String path = "http://api.ringpet.com/api/getConverstation?id="+id+"&pw="+pw+"&rm_id="+rm_id;
+ 	           		HttpGetRequest hgr = new HttpGetRequest();
+ 	                String url = hgr.getHTML(path);
+ 	                try {
+ 	                    JSONObject response = new JSONObject(url);
+ 	                    JSONObject channel = response.getJSONObject("channel");
+ 	                    int code = channel.getInt("result");
+ 	                    JSONArray array = channel.getJSONArray("item");
+	                    int length = array.length();
+	                    lists = new ArrayList<ConverstationModel>();
+	                    for(int i = 0; i < length; i++)
+	                    {
+	                    	ConverstationModel lModel = new ConverstationModel();
+	                    	JSONObject item = array.getJSONObject(i);
+	                    	lModel.SetMessageId(item.getString("message_id").toString());
+	                    	lModel.SetMessageContent(item.getString("message_content").toString());
+	                    	lModel.SetMessageRegDate(item.getString("message_reg_date").toString());
+	                    	lModel.SetFromId(item.getString("from_id").toString());
+	                    	lModel.SetToId(item.getString("to_id").toString());
+	                    	lists.add(lModel);
+	                    }
+ 	                } catch (JSONException e) {
+ 	                    Log.d("jsonexception", e.toString());
+ 	                }
+ 	                
+ 	           	}catch(Exception e){
+ 	        		e.printStackTrace();
+ 	        	}
+         	   	
+         	   mHandler.post(new Runnable() {
+         		  public void run() {
+         			 showConverstation();
+         		  }
+         	   });
+            }
+    	}.start();
+    }
+    
+    private void showConverstation()
+    {
+    	final ListView listView = (ListView)getView().findViewById(R.id.listView1);
+        final TestAdapter b1_adapter = new TestAdapter(this.getActivity(), R.layout.item_message_from_me, lists);
+		listView.setAdapter(b1_adapter);
+		
+		listView.post(new Runnable() {
+	        @Override
+	        public void run() {
+	            // Select the last row so it will scroll into view...
+	        	listView.setSelection(b1_adapter.getCount() - 1);
+	        }
+	    });
+		
+		listView.setOnItemClickListener(new OnItemClickListener() {
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id)                
+            {
+            	
+            }
+        });
+    }
+    
+    private void sendConverstation()
+    {
+    	final EditText txt = (EditText) this.getActivity().findViewById(R.id.send_message_txt);
+    	String tString = txt.getText().toString();
+    	if(tString.equals("") == false)
+    	{
+    		new Thread() {
+        		public void run() {
+             	   	try
+     	           	{
+             	   		String path = "http://api.ringpet.com/api/createConverstation?id="+id+"&pw="+pw+"&to_id="+to_id+"&content="+URLEncoder.encode(txt.getText().toString());
+     	           		HttpGetRequest hgr = new HttpGetRequest();
+     	                String url = hgr.getHTML(path);
+     	                try {
+     	                    JSONObject response = new JSONObject(url);
+     	                    JSONObject channel = response.getJSONObject("channel");
+     	                    int code = channel.getInt("result");
+     	                    if(code == 400)
+     	                    {
+     	                    	rm_id = channel.getInt("rm_id");
+     	                    }
+     	                    
+     	                } catch (JSONException e) {
+     	                    Log.d("jsonexception", e.toString());
+     	                }
+
+     	           	}catch(Exception e){
+     	        		e.printStackTrace();
+     	        	}
+     	        		
+             	   mHandler.post(new Runnable() {
+             		  public void run() {
+             			  if(rm_id != 0)
+             			  {
+             				  txt.setText("");
+             				  getConverstaionList();
+             			  }
+             		  }
+             	   });
+                }
+        	}.start();
+    	}
+    }
+    
+    public class TestAdapter extends ArrayAdapter<ConverstationModel>{
+    	public ArrayList<ConverstationModel> items;
+    	private Context mcontext;
+    	
+    	public TestAdapter(Context context, int textViewResourceId, ArrayList<ConverstationModel> items) {
+            super(context, textViewResourceId, items);
+            mcontext = context;
+    		this.items = items;
+    	}
+    	
+    	@Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            View v = convertView;
+            if (v == null) {
+            	ConverstationModel areaInfo = items.get(position);
+                LayoutInflater vi = (LayoutInflater)getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+                if(areaInfo.GetToId().equals(id))
+                {
+                	v = vi.inflate(R.layout.item_message_from_another, null);
+                	ImageView iv = (ImageView) v.findViewById(R.id.title_img);
+                	UrlImageViewHelper.setUrlDrawable(iv, "http://img.ringpet.com/"+pic);
+                	TextView tv = (TextView) v.findViewById(R.id.textView1);
+                    tv.setText(areaInfo.GetMessageContent());
+                }
+                
+                if(areaInfo.GetFromId().equals(id))
+                {
+                	v = vi.inflate(R.layout.item_message_from_me, null);
+                	TextView tv = (TextView) v.findViewById(R.id.textView1);
+                    tv.setText(areaInfo.GetMessageContent());
+                }
+                
+                
+            }
+            return v;
+        }
+    	
+    }
+}

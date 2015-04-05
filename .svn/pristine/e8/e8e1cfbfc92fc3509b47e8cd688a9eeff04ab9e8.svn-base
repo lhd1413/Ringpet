@@ -1,0 +1,66 @@
+package com.mintfish.ringpet.model;
+
+public class ConverstationModel {
+	private String _message_id;
+	private String _message_content;
+	private String _message_reg_date;
+	private String _from_id;
+	private String _to_id;
+	
+	public ConverstationModel()
+	{
+		
+	}
+	
+	public void SetMessageId(String val)
+	{
+		_message_id = val;
+	}
+	
+	public String GetMessageId()
+	{
+		return _message_id;
+	}
+	
+	public void SetMessageContent(String val)
+	{
+		_message_content = val;
+	}
+	
+	public String GetMessageContent()
+	{
+		return _message_content;
+	}
+	
+	public void SetMessageRegDate(String val)
+	{
+		_message_reg_date = val;
+	}
+	
+	public String GetMessageRegDate()
+	{
+		return _message_reg_date;
+	}
+	
+	public void SetFromId(String val)
+	{
+		_from_id = val;
+	}
+	
+	public String GetFromId()
+	{
+		return _from_id;
+	}
+	
+	public void SetToId(String val)
+	{
+		_to_id = val;
+	}
+	
+	public String GetToId()
+	{
+		return _to_id;
+	}
+	
+
+}

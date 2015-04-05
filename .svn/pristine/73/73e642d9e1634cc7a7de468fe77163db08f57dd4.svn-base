@@ -1,0 +1,65 @@
+package com.mintfish.ringpet.model;
+
+public class ReviewModel {
+	private String _id;
+	private String _description;
+	private float _point;
+	private String _reg_date;
+	private String _photo;
+	
+	public ReviewModel()
+	{
+		
+	}
+	
+	public void SetId(String id)
+	{
+		_id = id;
+	}
+	
+	public String GetId()
+	{
+		return _id;
+	}
+	
+	public void SetDescription(String val)
+	{
+		_description = val;
+	}
+	
+	public String GetDescription()
+	{
+		return _description;
+	}
+	
+	public void SetPoint(float val)
+	{
+		_point = val;
+	}
+	
+	public float GetPoint()
+	{
+		return _point;
+	}
+	
+	public void SetRegDate(String val)
+	{
+		_reg_date = val;
+	}
+	
+	public String GetRegDate()
+	{
+		return _reg_date;
+	}
+	
+	public void SetPhoto(String val)
+	{
+		_photo = val;
+	}
+	
+	public String GetPhoto()
+	{
+		return _photo;
+	}
+	
+}

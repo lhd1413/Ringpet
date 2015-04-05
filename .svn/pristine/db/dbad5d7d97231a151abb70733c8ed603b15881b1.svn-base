@@ -1,0 +1,458 @@
+package com.mintfish.ringpet.sitter;
+
+import java.util.ArrayList;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import com.koushikdutta.urlimageviewhelper.UrlImageViewHelper;
+import com.mintfish.ringpet.MainActivity;
+import com.mintfish.ringpet.R;
+import com.mintfish.ringpet.message.MessageConverstationFragment;
+import com.mintfish.ringpet.reservation.ReservationStartFragment;
+import com.mintfish.ringpet.review.ReviewListFragment;
+import com.mintfish.ringpet.util.HttpGetRequest;
+import com.mintfish.ringpet.model.ListModel;
+
+import android.app.AlertDialog;
+import android.app.ProgressDialog;
+import android.content.ContentValues;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.os.Bundle;
+import android.os.Handler;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+
+public class SitterInformationFragment extends Fragment {
+	
+	private Boolean fav_sw;
+	private ListModel tModel;
+	private TextView lab_name;
+	private TextView lab_dog_name;
+	private TextView lab_dog_desc;
+	private TextView lab_dog_type;
+	private TextView lab_desc;
+	private TextView lab_title;
+	private TextView lab_money;
+	private TextView lab_si_year;
+	private TextView lab_si_care;
+	private TextView lab_si_home_type;
+	private ImageView pic_home;
+	private ImageView pic_people;
+	private ImageView pic_dog;
+	private TextView lab_service1;
+	private TextView lab_service2;
+	private TextView lab_service3;
+	private TextView lab_service4;
+	private TextView lab_dog_sex;
+	private TextView lab_dog_age;
+	private TextView lab_dog_inj;
+	private TextView lab_si_home;
+	private TextView lab_si_dog_char;
+	private ImageView favorite_ico;
+	private int day_money;
+	private int service1_money;
+	private int service2_money;
+	private int service3_money;
+	private int service4_money;
+	private String id = "";
+	private String pw = "";
+	Handler mHandler = new Handler();
+	
+	@Override
+	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
+	{
+		Bundle b = getActivity().getIntent().getExtras();
+		if(b != null)
+		{
+			id = b.getString("id");
+			pw = b.getString("pw");
+		}
+		return inflater.inflate(R.layout.activity_sitter_information, null);
+	}
+	
+	@Override
+	public void onActivityCreated(Bundle savedInstanceState)
+	{
+		fav_sw = false;
+		lab_dog_name = (TextView) getView().findViewById(R.id.si_dog_name);
+		lab_dog_desc = (TextView) getView().findViewById(R.id.si_dog_desc);
+		lab_dog_type = (TextView) getView().findViewById(R.id.si_dog_type);
+		lab_desc = (TextView) getView().findViewById(R.id.si_desc);
+		lab_name = (TextView) getView().findViewById(R.id.si_name);
+		lab_title = (TextView)getView().findViewById(R.id.si_title_information);
+		pic_home = (ImageView)getView().findViewById(R.id.si_home);
+		pic_people = (ImageView)getView().findViewById(R.id.si_pic);
+		pic_dog = (ImageView)getView().findViewById(R.id.si_dog);
+		lab_si_year = (TextView) getView().findViewById(R.id.si_year);
+		lab_si_care = (TextView) getView().findViewById(R.id.si_care);
+		lab_money = (TextView) getView().findViewById(R.id.si_price);
+		lab_si_home_type = (TextView) getView().findViewById(R.id.si_home_type);
+		lab_dog_sex = (TextView) getView().findViewById(R.id.si_dog_sex);
+		lab_dog_age = (TextView) getView().findViewById(R.id.si_dog_age);
+		lab_dog_inj = (TextView) getView().findViewById(R.id.si_dog_inj);
+		lab_si_home = (TextView) getView().findViewById(R.id.si_location);
+		lab_si_dog_char = (TextView) getView().findViewById(R.id.si_dog_char);
+		lab_service1 = (TextView) getView().findViewById(R.id.si_service1);
+		lab_service2 = (TextView) getView().findViewById(R.id.si_service2);
+		lab_service3 = (TextView) getView().findViewById(R.id.si_service3);
+		lab_service4 = (TextView) getView().findViewById(R.id.si_service4);
+		
+		super.onActivityCreated(savedInstanceState);
+		
+		ImageView ico1 = (ImageView) getView().findViewById(R.id.si_rs_ico1);
+        ImageView ico2 = (ImageView) getView().findViewById(R.id.si_rs_ico2);
+        ImageView ico3 = (ImageView) getView().findViewById(R.id.si_rs_ico3);
+        ImageView ico4 = (ImageView) getView().findViewById(R.id.si_rs_ico4);
+        ImageView ico5 = (ImageView) getView().findViewById(R.id.si_rs_ico5);
+        TextView review_score = (TextView) getView().findViewById(R.id.si_rs_point);
+        TextView review_cnt = (TextView) getView().findViewById(R.id.si_rs_cnt);
+        
+        
+        ico1.setImageResource(R.drawable.mn_img_review_off);
+        ico2.setImageResource(R.drawable.mn_img_review_off);
+        ico3.setImageResource(R.drawable.mn_img_review_off);
+        ico4.setImageResource(R.drawable.mn_img_review_off);
+        ico5.setImageResource(R.drawable.mn_img_review_off);
+        
+        if(tModel.getAvg() >= 5)
+        	ico5.setImageResource(R.drawable.mn_img_review_on);
+        
+        if(tModel.getAvg() >= 4)
+        	ico4.setImageResource(R.drawable.mn_img_review_on);
+        
+        if(tModel.getAvg() >= 3)
+        	ico3.setImageResource(R.drawable.mn_img_review_on);
+        
+        if(tModel.getAvg() >= 2)
+        	ico2.setImageResource(R.drawable.mn_img_review_on);
+        
+        if(tModel.getAvg() >= 1)
+        	ico1.setImageResource(R.drawable.mn_img_review_on);
+        review_score.setText(Float.toString(tModel.getAvg()));
+        review_cnt.setText("("+tModel.getAvgCnt()+"명)");
+		
+		final ImageView iv = (ImageView)this.getActivity().findViewById(R.id.title_bar);
+		final TextView tv = (TextView)this.getActivity().findViewById(R.id.title_bar_img);
+		iv.setVisibility(View.INVISIBLE);
+		tv.setVisibility(View.VISIBLE);
+		tv.setText(R.string.title_sitter);
+    	
+		LinearLayout menu1 = (LinearLayout)getView().findViewById(R.id.as_message_btn);
+		LinearLayout menu2 = (LinearLayout)getView().findViewById(R.id.as_res_btn);
+		LinearLayout menu3 = (LinearLayout)getView().findViewById(R.id.as_review_btn);
+		
+		menu1.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v) {
+				if(id == null)
+				{
+					showLoginAlert();
+				}else{
+					MessageConverstationFragment sif = new MessageConverstationFragment();
+					sif.SetId(tModel.getUser_id(), tModel.getPhoto());
+					FragmentTransaction ft = getFragmentManager().beginTransaction();
+					ft.replace(R.id.fragment1, sif);
+					ft.setTransition(FragmentTransaction.TRANSIT_NONE);
+					ft.addToBackStack(null);
+					ft.commit();
+				}
+			}
+        });
+		
+		menu2.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v) {
+				if(id == null)
+				{
+					showLoginAlert();
+				}else{
+					ReservationStartFragment sif =  new ReservationStartFragment();
+					sif.setMoney(tModel.getUser_id(), lab_name.getText().toString(), day_money, service1_money, service2_money, service3_money, service4_money);
+					FragmentTransaction ft = getFragmentManager().beginTransaction();
+					ft.replace(R.id.fragment1, sif);
+					ft.setTransition(FragmentTransaction.TRANSIT_NONE);
+					ft.addToBackStack(null);
+					ft.commit();
+				}
+			}
+        });
+		
+		menu3.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v) {
+				ReviewListFragment sif =  new ReviewListFragment();
+            	sif.setSitter(tModel.getUser_id());
+            	
+            	FragmentTransaction ft = getFragmentManager().beginTransaction();
+				ft.replace(R.id.fragment1, sif);
+		        ft.setTransition(FragmentTransaction.TRANSIT_NONE);
+		        ft.addToBackStack(null);
+		        ft.commit();
+			}
+        });
+		ImageView badge1 = (ImageView) getView().findViewById(R.id.im_main_badge1);
+        ImageView badge2 = (ImageView) getView().findViewById(R.id.im_main_badge2);
+        ImageView badge3 = (ImageView) getView().findViewById(R.id.im_main_badge3);
+        
+        if(tModel.getBadge1() == 0)
+        	badge1.setVisibility(View.INVISIBLE);
+        else
+        	badge1.setVisibility(View.VISIBLE);
+        
+        if(tModel.getBadge2() == 0)
+        	badge2.setVisibility(View.INVISIBLE);
+        else
+        	badge2.setVisibility(View.VISIBLE);
+        
+        if(tModel.getBadge3() == 0)
+        	badge3.setVisibility(View.INVISIBLE);
+        else
+        	badge3.setVisibility(View.VISIBLE);
+        
+		UrlImageViewHelper.setUrlDrawable(pic_home, "http://img.ringpet.com/"+tModel.getPic_home());
+		UrlImageViewHelper.setUrlDrawable(pic_dog, "http://img.ringpet.com/"+tModel.getPhoto());
+		lab_title.setText(tModel.getTitle());
+		
+		favorite_ico = (ImageView) getView().findViewById(R.id.si_favorite);
+		favorite_ico.setOnClickListener(new View.OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				if(id == null)
+				{
+					showLoginAlert();
+				}else{
+					if(fav_sw == false)
+					{
+						addFavorite();
+					}else{
+						deleteFavorite();
+					}
+				}
+				
+			}
+		});
+		loadData();
+		
+	}
+	
+	private void showLoginAlert()
+	{
+		AlertDialog.Builder Search_D = new AlertDialog.Builder(getActivity());
+	    
+	    Search_D.setTitle("확인");
+	    Search_D.setMessage("로그인이 필요한 서비스입니다. 로그인 하시겠습니까?");
+	    Search_D.setCancelable(true);
+	    Search_D.setPositiveButton("로그인", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+            	Intent intent = new Intent(getActivity(), MainActivity.class);
+				startActivity(intent);
+            	getActivity().finish();
+           }
+	    });
+	    Search_D.setNegativeButton("취소", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+            }
+	    });
+	    Search_D.show();
+	}
+	
+	private void loadData()
+    {
+		final ProgressDialog dialog = ProgressDialog.show(getActivity(), "", "불러오는 중입니다. 잠시만 기다려주십시오.", true);
+    	new Thread() {
+ 		   	public void run() {
+         	   	try
+ 	           	{
+         	   		String path = "http://api.ringpet.com/api/getSitterInformation?sitter_id="+tModel.getUser_id()+"&id="+id+"&pw="+pw;
+ 	           		HttpGetRequest hgr = new HttpGetRequest();
+ 	                String url = hgr.getHTML(path);
+ 	                try {
+ 	                    JSONObject response = new JSONObject(url);
+ 	                    JSONObject channel = response.getJSONObject("channel");
+ 	                    int code = channel.getInt("result");
+ 	                    if(code == 400)
+ 	                    {
+ 	                    	JSONObject array = channel.getJSONObject("item");
+ 	                    	final String sitter_title = array.getString("sitter_title").toString();
+ 	                    	final String sitter_name = array.getString("sitter_name").toString();
+ 	                    	final String sitter_introduce = array.getString("sitter_introduce").toString();
+ 	                    	final int sitter_career = array.getInt("sitter_career");
+ 	                    	final int sitter_full_time = array.getInt("sitter_full_time");
+ 	                    	final String sitter_pic_home = array.getString("sitter_pic_home").toString();
+ 	                    	final String sitter_house = array.getString("sitter_house").toString();
+ 	                    	final String sitter_address = array.getString("sitter_address").toString();
+ 	                    	final int sitter_money = array.getInt("sitter_money");
+ 	                    	final int sitter_bath = array.getInt("sitter_bath");
+ 	                    	final int sitter_walk = array.getInt("sitter_walk");
+ 	                    	final int sitter_hair = array.getInt("sitter_hair");
+ 	                    	final int sitter_pickup = array.getInt("sitter_pickup");
+ 	                    	final String user_photo = array.getString("user_photo").toString();
+ 	                    	final String pet_name = array.getString("pet_name").toString();
+ 	                    	final int pet_age = array.getInt("pet_age");
+ 	                    	final int pet_sex = array.getInt("pet_sex");
+ 	                    	final int favorite = array.getInt("sitter_favorite");
+ 	                    	final String pet_introduce = array.getString("pet_introduce").toString();
+ 	                    	final String pet_pic = array.getString("pet_pic").toString();
+ 	                    	final String pet_type = array.getString("pet_type").toString();
+ 	                    	final String pet_influence = array.getString("pet_influence").toString();
+ 	                    	
+ 	                    	day_money = sitter_money;
+ 	                    	service1_money = sitter_bath;
+ 	                    	service2_money = sitter_walk;
+ 	                    	service3_money = sitter_hair;
+ 	                    	service4_money = sitter_pickup;
+ 	                    	
+ 	                    	mHandler.post(new Runnable() {
+ 	        	        		public void run() {
+ 	        	        			
+ 	        	        			if(sitter_bath != -1)
+ 	        	        				lab_service1.setText(sitter_bath+"원");
+ 	        	        			
+ 	        	        			if(sitter_walk != -1)
+ 	        	        				lab_service2.setText(sitter_walk+"원");
+ 	        	        			
+ 	        	        			if(sitter_hair != -1)
+ 	        	        				lab_service3.setText(sitter_hair+"원");
+ 	        	        			
+ 	        	        			if(service4_money != -1)
+ 	        	        				lab_service4.setText(service4_money+"원");
+ 	        	        			
+ 	        	        			lab_name.setText(sitter_name);
+ 	        	        			lab_title.setText(sitter_title);
+ 	        	        			lab_desc.setText(sitter_introduce);
+ 	        	        			lab_si_year.setText(String.valueOf(sitter_career) + "년");
+ 	        	        			String[] array = sitter_address.split(" ");
+ 	        	        			
+ 	        	        			if(sitter_full_time == 0)
+ 	        	        				lab_si_care.setText("예");
+ 	        	        			else
+ 	        	        				lab_si_care.setText("아니오");
+ 	        	        			UrlImageViewHelper.setUrlDrawable(pic_home, "http://img.ringpet.com/"+sitter_pic_home);
+ 	        	        			lab_money.setText(String.valueOf(sitter_money) + "원/일");
+ 	        	        			lab_si_home_type.setText(sitter_house);
+ 	        	        			UrlImageViewHelper.setUrlDrawable(pic_people, "http://img.ringpet.com/"+user_photo);
+ 	        	        			lab_dog_name.setText(pet_name);
+ 	        	        			lab_dog_type.setText(pet_type);
+ 	        	        			lab_dog_desc.setText(pet_introduce);
+ 	        	        			UrlImageViewHelper.setUrlDrawable(pic_dog, "http://img.ringpet.com/"+pet_pic);
+ 	        	        			if(pet_sex == 0)
+ 	        	        			{
+ 	        	        				lab_dog_sex.setText("예");
+ 	        	        				lab_si_dog_char.setText("남");
+ 	        	        			}else{
+ 	        	        				lab_dog_sex.setText("아니오");
+ 	        	        				lab_si_dog_char.setText("여");
+ 	        	        			}
+ 	        	        			lab_si_home.setText(array[0] + " " + array[1]);
+ 	        	        			lab_dog_age.setText(String.valueOf(pet_age)+"세");
+ 	        	        			lab_dog_inj.setText(pet_influence);
+ 	        	        			
+ 	        	        			if(favorite == 1)
+ 	        	        			{
+ 	        	        				fav_sw = true;
+ 	        	        			}else{
+ 	        	        				fav_sw = false;
+ 	        	        			}
+ 	        	        		}
+ 	        	        	});
+ 	                    }
+ 	                } catch (JSONException e) {
+ 	                    Log.d("jsonexception", e.toString());
+ 	                }
+
+ 	           	}catch(Exception e){
+ 	        		e.printStackTrace();
+ 	        	}
+ 	        		
+         	   mHandler.post(new Runnable() {
+         		  public void run() {
+         			  if(fav_sw == true)
+         			  {
+         				 favorite_ico.setImageResource(R.drawable.ps_btn_bookmark_on);
+         			  }else{
+         				 favorite_ico.setImageResource(R.drawable.ps_btn_bookmark);
+         			  }
+         			  dialog.hide();
+         			  dialog.dismiss();
+         		  }
+         	   });
+            }
+    	}.start();	
+    }
+	
+	public void setModel(ListModel md)
+	{
+		tModel = md;
+	}
+	
+	private void addFavorite()
+	{
+		final ProgressDialog dialog = ProgressDialog.show(getActivity(), "", "등록중입니다. 잠시만 기다려주십시오.", true);
+    	new Thread() {
+ 		   	public void run() {
+         	   	try
+ 	           	{
+         	   		String path = "http://api.ringpet.com/api/addFavorite?sitter_id="+tModel.getUser_id()+"&id="+id+"&pw="+pw;
+ 	           		HttpGetRequest hgr = new HttpGetRequest();
+ 	                String url = hgr.getHTML(path);
+ 	                try {
+ 	                    JSONObject response = new JSONObject(url);
+ 	                }catch (JSONException e) {
+ 	                    Log.d("jsonexception", e.toString());
+ 	                }
+
+ 	           	}catch(Exception e){
+ 	        		e.printStackTrace();
+ 	        	}
+         	   mHandler.post(new Runnable() {
+          		  public void run() {
+          			  fav_sw = true;
+          			  favorite_ico.setImageResource(R.drawable.ps_btn_bookmark_on);
+          			  dialog.hide();
+          			  dialog.dismiss();
+          		  }
+          	   });
+             }
+     	}.start();	
+	}
+	
+	private void deleteFavorite()
+	{
+		final ProgressDialog dialog = ProgressDialog.show(getActivity(), "", "등록중입니다. 잠시만 기다려주십시오.", true);
+    	new Thread() {
+ 		   	public void run() {
+         	   	try
+ 	           	{
+         	   		String path = "http://api.ringpet.com/api/delFavorite?sitter_id="+tModel.getUser_id()+"&id="+id+"&pw="+pw;
+ 	           		HttpGetRequest hgr = new HttpGetRequest();
+ 	                String url = hgr.getHTML(path);
+ 	                try {
+ 	                    JSONObject response = new JSONObject(url);
+ 	                }catch (JSONException e) {
+ 	                    Log.d("jsonexception", e.toString());
+ 	                }
+
+ 	           	}catch(Exception e){
+ 	        		e.printStackTrace();
+ 	        	}
+         	   mHandler.post(new Runnable() {
+          		  public void run() {
+          			  fav_sw = false;
+          			  favorite_ico.setImageResource(R.drawable.ps_btn_bookmark);
+          			  dialog.hide();
+          			  dialog.dismiss();
+          		  }
+          	   });
+             }
+     	}.start();
+	}
+
+}

@@ -1,0 +1,60 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#f4f4f4"
+    android:orientation="vertical" >
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="48dp" 
+        android:background="#cf6ba9">
+        <ImageView
+            android:id="@+id/im_btn_main_left"
+            android:layout_gravity="center"
+            android:layout_width="wrap_content"
+            android:layout_marginLeft="11dp"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ab_btn_menu" />
+		<FrameLayout 
+		    android:layout_gravity="center"
+            android:layout_marginLeft="12dp"
+            android:layout_weight="1"
+            android:layout_width="wrap_content"
+            android:layout_height="fill_parent">
+			
+        	<ImageView
+        	    android:id="@+id/title_bar"
+        	    android:layout_width="wrap_content"
+        	    android:layout_height="wrap_content"
+        	    android:layout_gravity="center_vertical"
+        	    android:src="@drawable/ab_img_logo" />
+
+        	<TextView
+        	    android:id="@+id/title_bar_img"
+        	    android:layout_width="wrap_content"
+        	    android:layout_height="wrap_content"
+        	    android:layout_gravity="center_vertical"
+        	    android:text="@string/title_information"
+        	    android:textColor="#fffdf1"
+        	    android:textSize="19sp"
+        	    android:visibility="invisible" />
+        	
+        </FrameLayout>
+        <ImageView
+        	    android:id="@+id/im_btn_main_right"
+        	    android:layout_width="wrap_content"
+        	    android:layout_height="wrap_content"
+        	    android:layout_marginRight="11dp"
+        	    android:layout_gravity="center"
+        	    android:src="@drawable/ab_btn_search" />
+
+    </LinearLayout>
+
+    <fragment
+        android:id="@+id/fragment1"
+        android:name="com.mintfish.ringpet.page.MainFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+</LinearLayout>

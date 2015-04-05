@@ -1,0 +1,209 @@
+package com.mintfish.ringpet.signup;
+
+import com.mintfish.ringpet.R;
+
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.DialogInterface.OnClickListener;
+import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
+import android.os.Bundle;
+import android.provider.MediaStore;
+import android.view.View;
+import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.RadioGroup;
+
+public class SignupSitterIntroductionActivity extends Activity {
+	
+	private String sitter_title = "";
+	private String sitter_introduce = "";
+	private String sitter_exp = "";
+	private int sitter_home_type = 0;
+	private int sitter_own_type = 0;
+	private int sitter_care_type = 0;
+	
+	private int sitter_chk_opt1 = 0;
+	private int sitter_fee_opt1 = 0;
+	
+	private int sitter_chk_opt2 = 0;
+	private int sitter_fee_opt2 = 0;
+	
+	private int sitter_chk_opt3 = 0;
+	private int sitter_fee_opt3 = 0;
+	
+	private int sitter_chk_opt4 = 0;
+	private int sitter_fee_opt4 = 0;
+	
+	private int sitter_chk_opt5 = 0;
+	private int sitter_fee_opt5 = 0;
+
+	private int RESULT_LOAD_IMAGE = 750;
+	private static final int CAMERA_REQUEST = 1888; 
+	
+	@Override
+    protected void onCreate(Bundle savedInstanceState) {		
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_signup_petsitter_information);
+        
+        
+        final EditText title = (EditText) findViewById(R.id.psi_subject);
+        final EditText introduce = (EditText) findViewById(R.id.psi_introduction);
+        final EditText year = (EditText) findViewById(R.id.psi_breed_year);
+        
+        final RadioGroup home_type = (RadioGroup) findViewById(R.id.psi_home_type);
+        final RadioGroup car_type = (RadioGroup) findViewById(R.id.car_type);
+        final RadioGroup full_time = (RadioGroup) findViewById(R.id.psi_fulltime);        
+        
+        final CheckBox chk1 = (CheckBox) findViewById(R.id.care_checkBox);
+        final CheckBox chk2 = (CheckBox) findViewById(R.id.type1_checkBox);
+        final CheckBox chk3 = (CheckBox) findViewById(R.id.type2_checkBox);
+        final CheckBox chk4 = (CheckBox) findViewById(R.id.type3_checkBox);
+        final CheckBox chk5 = (CheckBox) findViewById(R.id.type4_checkBox);
+        
+        
+        final EditText fee1 = (EditText) findViewById(R.id.care_editText);
+        final EditText fee2 = (EditText) findViewById(R.id.type1_editText);
+        final EditText fee3 = (EditText) findViewById(R.id.type2_editText);
+        final EditText fee4 = (EditText) findViewById(R.id.type3_editText);
+        final EditText fee5 = (EditText) findViewById(R.id.type4_editText);
+        
+        
+        LinearLayout lin_pic = (LinearLayout) findViewById(R.id.lv_psi_profile);
+        lin_pic.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v) {
+				setFileUploadType();
+			}
+        });
+				
+        
+        
+        Button btn = (Button) findViewById(R.id.pt_comp);
+        btn.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v) {
+				
+				if(title.getText().toString().equals("") == true || introduce.getText().toString().equals("") == true || year.getText().toString().equals("") == true || fee1.getText().toString().equals("") == true)
+				{
+					showErrorAlert("빠짐없이 입력하셨는지 확인해 주십시오.");
+				}else{
+					sitter_title = title.getText().toString();
+					sitter_introduce = introduce.getText().toString();
+					sitter_exp = year.getText().toString(); 
+					
+					int radioButtonID = home_type.getCheckedRadioButtonId();
+					View radioButton = home_type.findViewById(radioButtonID);
+					sitter_home_type = home_type.indexOfChild(radioButton);
+					
+					radioButtonID = car_type.getCheckedRadioButtonId();
+					radioButton = car_type.findViewById(radioButtonID);
+					sitter_own_type = car_type.indexOfChild(radioButton);
+					
+					radioButtonID = full_time.getCheckedRadioButtonId();
+					radioButton = full_time.findViewById(radioButtonID);
+					sitter_care_type = full_time.indexOfChild(radioButton);
+					
+					sitter_chk_opt1 = chk1.isChecked() == true ? 1:0;
+					sitter_chk_opt2 = chk2.isChecked() == true ? 1:0;
+					sitter_chk_opt3 = chk3.isChecked() == true ? 1:0;
+					sitter_chk_opt4 = chk4.isChecked() == true ? 1:0;
+					sitter_chk_opt5 = chk5.isChecked() == true ? 1:0;
+					
+					sitter_fee_opt1 = Integer.parseInt(fee1.getText().toString().replace(",", ""));
+					sitter_fee_opt2 = Integer.parseInt(fee2.getText().toString());
+					sitter_fee_opt3 = Integer.parseInt(fee3.getText().toString());
+					sitter_fee_opt4 = Integer.parseInt(fee4.getText().toString());
+					sitter_fee_opt5 = Integer.parseInt(fee5.getText().toString());
+					
+					Intent next_step = new Intent(SignupSitterIntroductionActivity.this, SignupPetSitterInformationActivity.class);
+					next_step.putExtra("isSitter", true);
+					next_step.putExtra("title", sitter_title);
+					next_step.putExtra("introduction", sitter_introduce);
+					next_step.putExtra("exp", sitter_exp);
+					next_step.putExtra("type1", sitter_home_type);
+					next_step.putExtra("type2", sitter_own_type);
+					next_step.putExtra("type3", sitter_care_type);
+					next_step.putExtra("chk1", sitter_chk_opt1);
+					next_step.putExtra("chk2", sitter_chk_opt2);
+					next_step.putExtra("chk3", sitter_chk_opt3);
+					next_step.putExtra("chk4", sitter_chk_opt4);
+					next_step.putExtra("chk5", sitter_chk_opt5);
+					next_step.putExtra("fee1", sitter_fee_opt1);
+					next_step.putExtra("fee2", sitter_fee_opt2);
+					next_step.putExtra("fee3", sitter_fee_opt3);
+					next_step.putExtra("fee4", sitter_fee_opt4);
+					next_step.putExtra("fee5", sitter_fee_opt5);
+					startActivity(next_step);
+    				finish();					
+				}
+				
+			}
+        });
+        
+	}
+	
+	@Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == RESULT_LOAD_IMAGE && resultCode == RESULT_OK && null != data) {
+            Uri selectedImage = data.getData();
+            String[] filePathColumn = { MediaStore.Images.Media.DATA };
+            Cursor cursor = getContentResolver().query(selectedImage,filePathColumn, null, null, null);
+            cursor.moveToFirst();
+            int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
+            String picturePath = cursor.getString(columnIndex);
+            cursor.close();
+            ImageView imageView = (ImageView) findViewById(R.id.img_psi_profile);
+            imageView.setImageBitmap(BitmapFactory.decodeFile(picturePath));
+        }
+        
+        if (requestCode == CAMERA_REQUEST && resultCode == RESULT_OK) {  
+            Bitmap photo = (Bitmap) data.getExtras().get("data"); 
+            ImageView imageView = (ImageView) findViewById(R.id.img_psi_profile);
+            imageView.setImageBitmap(photo);
+        }  
+
+    }
+	
+	private void setFileUploadType()
+	{
+		final String [] items=new String []{"사진 촬영하기","앨범에서 선택","취소"};
+		AlertDialog.Builder builder=new AlertDialog.Builder(this);
+		builder.setTitle("사진 선택하기");
+
+		builder.setItems(items, new OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				if(which == 0)
+				{
+					Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE); 
+	                startActivityForResult(cameraIntent, CAMERA_REQUEST); 
+				}else if(which == 1){
+					Intent i = new Intent(Intent.ACTION_PICK,android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+					startActivityForResult(i, RESULT_LOAD_IMAGE);
+				}
+			}
+		});
+
+		builder.show();
+	}
+	
+	private void showErrorAlert(String message)
+	{
+	   AlertDialog.Builder builder = new AlertDialog.Builder(this);
+	   builder.setTitle("확인");
+	   builder.setMessage(message);
+	   builder.setNeutralButton("확인", new DialogInterface.OnClickListener() {
+           public void onClick(DialogInterface dialog, int whichButton) {                                        
+          }
+       });
+	   builder.show();
+	}
+
+}

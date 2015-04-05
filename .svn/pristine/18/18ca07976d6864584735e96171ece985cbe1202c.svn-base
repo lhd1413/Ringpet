@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="188dp"
+    android:orientation="vertical" >
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="178dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginRight="10dp"
+        android:orientation="vertical" >
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:background="@drawable/mn_bg_box_top">
+
+            <ImageView
+                android:id="@+id/im_main_profile"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:layout_marginLeft="10dp"
+                android:layout_marginTop="10dp"
+                android:src="@drawable/test_pic_people" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginLeft="6dp"
+                android:layout_weight="1"
+                android:orientation="vertical" >
+
+                <TextView
+                    android:id="@+id/im_main_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:singleLine="true"
+                    android:textColor="#4d4d4d"
+                    android:textSize="15sp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent" >
+
+                        <ImageView
+                            android:id="@+id/im_main_score1"
+                            android:layout_gravity="center"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:src="@drawable/mn_img_review_on" />
+                        <ImageView
+                            android:id="@+id/im_main_score2"
+                            android:layout_marginLeft="3dp"
+                            android:layout_gravity="center"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:src="@drawable/mn_img_review_on" />
+                        <ImageView
+                            android:id="@+id/im_main_score3"
+                            android:layout_marginLeft="3dp"
+                            android:layout_gravity="center"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:src="@drawable/mn_img_review_on" />
+                        <ImageView
+                            android:id="@+id/im_main_score4"
+                            android:layout_marginLeft="3dp"
+                            android:layout_gravity="center"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:src="@drawable/mn_img_review_on" />
+                        <ImageView
+                            android:id="@+id/im_main_score5"
+                            android:layout_marginLeft="3dp"
+                            android:layout_gravity="center"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:src="@drawable/mn_img_review_on" />
+
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/im_main_score_cnt"
+                        android:layout_marginLeft="7dp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="#cf6ba9"
+                        android:textSize="12sp" />
+
+                    <TextView
+                        android:id="@+id/im_main_score_people"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="4dp"                        
+                        android:textColor="#aeb1b3"
+                        android:textSize="12sp" />
+
+                </LinearLayout>
+                
+            </LinearLayout>
+            <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="13dp"
+                    android:layout_marginRight="11dp">
+
+                    <TextView
+                        android:id="@+id/im_main_distance"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="4dp"                        
+                        android:textColor="#aeb1b3"
+                        android:textSize="12sp" />
+
+                </LinearLayout>
+            
+        </LinearLayout>
+		<LinearLayout
+		    android:layout_width="match_parent"
+            android:layout_height="122dp"
+            android:background="@drawable/mn_bg_box_bottom">
+			<RelativeLayout
+			    android:layout_width="match_parent"
+			    android:layout_height="match_parent"
+			    android:layout_marginLeft="1dp"
+			    android:layout_marginRight="1dp"
+			    android:layout_marginBottom="1dp"
+			    >
+
+				<ImageView
+				    android:id="@+id/im_main_dog"
+				    android:layout_width="match_parent"
+				    android:layout_height="match_parent"
+				    android:scaleType="centerCrop"
+				    android:src="@drawable/test_pic_dog" />
+
+				<LinearLayout
+				    android:layout_width="wrap_content"
+				    android:layout_height="wrap_content"
+				    android:layout_alignParentLeft="true"
+				    android:layout_alignParentTop="true"
+				    android:layout_marginLeft="10dp"
+				    android:layout_marginTop="7dp"
+				    android:gravity="center"
+				    android:background="@drawable/mn_line_price"
+				    android:orientation="vertical" >
+
+					<TextView
+					    android:id="@+id/im_main_price"
+					    android:layout_width="wrap_content"
+					    android:layout_height="match_parent"
+					    android:layout_marginLeft="12dp"
+					    android:layout_marginRight="12dp"
+					    android:gravity="center"
+					    android:textColor="#fffdf1"
+					    android:textSize="14sp"
+					    android:textStyle="bold" />
+
+				</LinearLayout>
+
+				<ImageView
+				    android:layout_marginTop="7dp"
+				    android:layout_marginRight="7dp"
+				    android:id="@+id/im_main_badge1"
+				    android:layout_width="wrap_content"
+				    android:layout_height="wrap_content"
+				    android:layout_alignParentRight="true"
+				    android:layout_alignParentTop="true"
+				    android:src="@drawable/mn_badge_visited" 
+				     />
+
+				<ImageView
+				    android:id="@+id/im_main_badge2"
+				    android:layout_width="wrap_content"
+				    android:layout_height="wrap_content"
+				    android:layout_alignTop="@+id/im_main_badge1"
+				    android:layout_marginRight="4dp"
+				    android:layout_toLeftOf="@+id/im_main_badge1"
+				    android:src="@drawable/mn_badge_todays_petsitter"/>
+
+				<ImageView
+				    android:id="@+id/im_main_badge3"
+				    android:layout_width="wrap_content"
+				    android:layout_height="wrap_content"
+				    android:layout_alignTop="@+id/im_main_badge2"
+				    android:layout_marginRight="4dp"
+				    android:layout_toLeftOf="@+id/im_main_badge2"
+				    android:src="@drawable/mn_badge_video" />
+                    
+            </RelativeLayout>    
+		</LinearLayout>
+    </LinearLayout>
+
+</LinearLayout>

@@ -1,0 +1,189 @@
+package com.mintfish.ringpet.review;
+
+import java.util.ArrayList;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import com.koushikdutta.urlimageviewhelper.UrlImageViewHelper;
+import com.mintfish.ringpet.R;
+import com.mintfish.ringpet.model.ReviewModel;
+import com.mintfish.ringpet.util.HttpGetRequest;
+
+import android.app.ProgressDialog;
+import android.content.Context;
+import android.os.Bundle;
+import android.os.Handler;
+import android.support.v4.app.Fragment;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.ImageView;
+import android.widget.ListView;
+import android.widget.TextView;
+import android.widget.AdapterView.OnItemClickListener;
+
+public class ReviewListFragment extends Fragment {
+	private String sitter_id;
+	private ArrayList<ReviewModel> lists;
+	Handler mHandler = new Handler();
+	
+	@Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
+    {
+        return inflater.inflate(R.layout.activity_review_list, null);
+    }
+     
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState)
+    {
+        super.onActivityCreated(savedInstanceState);
+        loaddata();
+    }
+    
+    public void setSitter(String id)
+    {
+    	sitter_id = id;
+    }
+    
+    private void loaddata()
+    {
+    	lists = new ArrayList<ReviewModel>();
+    	final ProgressDialog dialog = ProgressDialog.show(getActivity(), "", "불러오는 중입니다. 잠시만 기다려주십시오.", true);
+    	new Thread() {
+ 		   	public void run() {
+         	   	try
+ 	           	{
+ 	           		String path = "http://api.ringpet.com/api/getReviewList?id="+sitter_id;
+ 	           		HttpGetRequest hgr = new HttpGetRequest();
+ 	                String url = hgr.getHTML(path);
+ 	                try {
+ 	                    JSONObject response = new JSONObject(url);
+ 	                    JSONObject channel = response.getJSONObject("channel");
+ 	                    //des_str = channel.getString("description").toString();
+ 	                    JSONArray array = channel.getJSONArray("item");
+ 	                    int length = array.length();
+ 	                    for(int i = 0; i < length; i++)
+ 	                    {
+ 	                    	ReviewModel lModel = new ReviewModel();
+ 	                    	JSONObject item = array.getJSONObject(i);
+ 	                    	lModel.SetDescription(item.getString("description").toString());
+ 	                    	lModel.SetId(item.getString("id").toString());
+ 	                    	lModel.SetPhoto(item.getString("photo").toString());
+ 	                    	lModel.SetRegDate(item.getString("reg_date").toString());
+ 	                    	lModel.SetPoint(Float.parseFloat(item.getString("point").toString()));
+ 	                    	lists.add(lModel);
+ 	                    }
+ 	
+ 	                } catch (JSONException e) {
+ 	                    Log.d("jsonexception", e.toString());
+ 	                }
+
+ 	           	}catch(Exception e){
+ 	        		e.printStackTrace();
+ 	        	}
+ 	        		
+ 	        	mHandler.post(new Runnable() {
+ 	        		public void run() {
+ 	        			dialog.dismiss();
+ 	        			dialog.hide();
+ 	        			setListView();
+ 	        		}
+ 	        	});
+            }
+    	}.start();	
+    }
+    
+    private void setListView()
+    {
+    	if(lists.size() == 0)
+    	{
+    		ReviewModel model = new ReviewModel();
+    		model.SetDescription("아직 작성된 리뷰가 없어요. 첫번째 리뷰를 작성해보세요 :)");
+    		model.SetId("Ringpet");
+    		model.SetPoint(5);
+    		model.SetRegDate("2014-03-26");
+    		model.SetPhoto("ringpet.png");
+    		lists.add(model);
+    	}
+    	ListView listView = (ListView)getView().findViewById(R.id.listView1);
+        TestAdapter b1_adapter = new TestAdapter(this.getActivity(), R.layout.item_review, lists);
+		listView.setAdapter(b1_adapter);
+		
+		listView.setOnItemClickListener(new OnItemClickListener() {
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id)                
+            {
+            }
+        });
+    }
+    
+    public class TestAdapter extends ArrayAdapter<ReviewModel>{
+    	public ArrayList<ReviewModel> items;
+    
+    	public TestAdapter(Context context, int textViewResourceId, ArrayList<ReviewModel> items) {
+            super(context, textViewResourceId, items);
+        	this.items = items;
+    	}
+    	
+    	@Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            View v = convertView;
+            if (v == null) {
+                LayoutInflater vi = (LayoutInflater)getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+                v = vi.inflate(R.layout.item_review, null);
+            }
+            
+            ReviewModel areaInfo = items.get(position);
+            
+            if (areaInfo != null) {
+            	TextView title1 = (TextView) v.findViewById(R.id.im_rv_name);
+                ImageView iv = (ImageView) v.findViewById(R.id.im_rv_pic);
+                
+                ImageView ico1 = (ImageView) v.findViewById(R.id.im_rv_score1);
+                ImageView ico2 = (ImageView) v.findViewById(R.id.im_rv_score2);
+                ImageView ico3 = (ImageView) v.findViewById(R.id.im_rv_score3);
+                ImageView ico4 = (ImageView) v.findViewById(R.id.im_rv_score4);
+                ImageView ico5 = (ImageView) v.findViewById(R.id.im_rv_score5);
+                TextView review_score = (TextView) v.findViewById(R.id.im_rv_score_cnt);
+                TextView review_date = (TextView) v.findViewById(R.id.im_rv_date);
+                TextView description = (TextView) v.findViewById(R.id.im_rs_due);
+                title1.setText(areaInfo.GetId());
+                UrlImageViewHelper.setUrlDrawable(iv, "http://img.ringpet.com/"+areaInfo.GetPhoto());
+                
+                ico1.setImageResource(R.drawable.mn_img_review_off);
+                ico2.setImageResource(R.drawable.mn_img_review_off);
+                ico3.setImageResource(R.drawable.mn_img_review_off);
+                ico4.setImageResource(R.drawable.mn_img_review_off);
+                ico5.setImageResource(R.drawable.mn_img_review_off);
+                
+                if(areaInfo.GetPoint() >= 5)
+                	ico5.setImageResource(R.drawable.mn_img_review_on);
+                
+                if(areaInfo.GetPoint() >= 4)
+                	ico4.setImageResource(R.drawable.mn_img_review_on);
+                
+                if(areaInfo.GetPoint() >= 3)
+                	ico3.setImageResource(R.drawable.mn_img_review_on);
+                
+                if(areaInfo.GetPoint() >= 2)
+                	ico2.setImageResource(R.drawable.mn_img_review_on);
+                
+                if(areaInfo.GetPoint() >= 1)
+                	ico1.setImageResource(R.drawable.mn_img_review_on);
+                
+                String[] array = areaInfo.GetRegDate().split(" ");
+                
+                review_score.setText(Float.toString(areaInfo.GetPoint()));
+                review_date.setText(array[0]);
+                description.setText(areaInfo.GetDescription());
+            }
+            return v;
+        }
+    	
+    }
+
+}

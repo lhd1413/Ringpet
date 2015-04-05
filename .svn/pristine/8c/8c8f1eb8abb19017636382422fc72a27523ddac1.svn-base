@@ -1,0 +1,1034 @@
+package com.mintfish.ringpet.page;
+
+import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.LinkedList;
+import java.util.List;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import com.jeremyfeinstein.slidingmenu.lib.SlidingMenu;
+import com.koushikdutta.urlimageviewhelper.UrlImageViewHelper;
+import com.mintfish.ringpet.MainActivity;
+import com.mintfish.ringpet.R;
+import com.mintfish.ringpet.UserGuideGuestActivity;
+import com.mintfish.ringpet.message.MessageListFragment;
+import com.mintfish.ringpet.notice.NoticeListFragment;
+import com.mintfish.ringpet.reservation.ReservationRequestFragment;
+import com.mintfish.ringpet.signup.SignupTypeActivity;
+import com.mintfish.ringpet.sitter.SitterCalendarFragment;
+import com.mintfish.ringpet.sitter.SitterInformationFragment;
+import com.mintfish.ringpet.bookmark.BookmarkListFragment;
+import com.mintfish.ringpet.information.InformationFragment;
+import com.mintfish.ringpet.model.ListModel;
+import com.mintfish.ringpet.util.DownloadImageTask;
+import com.mintfish.ringpet.util.HttpGetRequest;
+
+import android.app.Activity;
+import android.app.ProgressDialog;
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
+import android.os.Bundle;
+import android.os.Handler;
+import android.preference.PreferenceManager;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentManager.OnBackStackChangedListener;
+import android.support.v4.app.FragmentTransaction;
+import android.util.Log;
+import android.view.KeyEvent;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.CheckBox;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ListView;
+import android.widget.TextView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.TextView.OnEditorActionListener;
+
+public class MainFragment extends Fragment {
+	OnFramgeChangeListener mCallback;
+	private ProgressDialog dialog;
+    // Container Activity must implement this interface
+    public interface OnFramgeChangeListener {
+        public void onLoad();
+        public void onClose();
+    }
+    
+    private CheckBox search_chk1;
+    private CheckBox search_chk2;
+    private CheckBox search_chk3;
+    private CheckBox search_chk4;
+    private String id = "";
+	private String pw = "";
+	private String name = "";
+	private String photo = "";
+	private boolean is_sitter = false;
+	private Boolean is_log_bool = false;
+	private ArrayList<ListModel> lists = new ArrayList<ListModel>();
+	Handler mHandler = new Handler();
+	SlidingMenu right_menu;
+	
+	@Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
+    {
+		is_sitter = false;
+		Bundle b = getActivity().getIntent().getExtras();
+		if (manager == null) {
+			manager = (LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE);
+		}
+		
+		long minTime = 10000;
+		float minDistance = 0;
+		MyLocationListener listener = new MyLocationListener();
+		manager.requestLocationUpdates(LocationManager.GPS_PROVIDER, minTime, minDistance, listener);
+
+		is_log_bool = false;
+		SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getActivity().getBaseContext());
+        String saved_id = pref.getString("id", null);
+        String saved_pw = pref.getString("pw", null);
+        
+        if(saved_id != null && saved_pw != null)
+        {
+        	id = saved_id;
+        	pw = saved_pw;
+        	doLogin(saved_id, saved_pw);
+        	
+        }else{
+        	if(b != null)
+        	{
+        		id = b.getString("id");
+		        pw = b.getString("pw");
+		        name = b.getString("name");
+		        photo = b.getString("photo");
+		        is_sitter = b.getBoolean("sitter");
+		        if(id != null)
+		        	is_log_bool = true;
+        	}
+        }
+
+        return inflater.inflate(R.layout.activity_main, null);
+    }
+	
+	private LocationManager manager;
+    private double now_x;
+    private double now_y;
+    
+    class MyLocationListener implements LocationListener {
+    	 
+    	  // 위치정보는 아래 메서드를 통해서 전달된다.
+    	  @Override
+    	  public void onLocationChanged(Location location) {
+    		  now_x = location.getLatitude();
+    		  now_y = location.getLongitude();
+    	  }
+
+		@Override
+		public void onStatusChanged(String provider, int status, Bundle extras) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void onProviderEnabled(String provider) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void onProviderDisabled(String provider) {
+			// TODO Auto-generated method stub
+			
+		}
+    }
+	
+	private void doLogin(final String login_id, final String login_pw)
+	{
+		   
+		   new Thread() {
+			   int code = 0;
+	           Boolean login_success = false;
+	           public void run() {
+	        	   	try
+		           	{
+		           		String path = "http://api.ringpet.com/api/loginUser?id="+login_id+"&pw="+login_pw;
+		           		HttpGetRequest hgr = new HttpGetRequest();
+		                String url = hgr.getHTML(path);
+		                try {
+		                    JSONObject response = new JSONObject(url);
+		                    JSONObject channel = response.getJSONObject("channel");
+		                    String result_str = channel.getString("result").toString();
+		                    //des_str = channel.getString("description").toString();
+		                    JSONObject item = channel.getJSONObject("item");
+		                    name = item.getString("name").toString();
+		                    photo = item.getString("photo").toString();
+		                    is_sitter = item.getBoolean("sitter");
+		                    code = Integer.parseInt(result_str);
+		
+		                } catch (JSONException e) {
+		                    Log.d("jsonexception", e.toString());
+		                }
+		
+		                if(code==400){
+		                	id = login_id;
+		                	pw = login_pw;
+		                	login_success = true;
+		                }
+		                else if(code==200){
+		                	login_success = false;
+		                }
+		           		
+		           	}catch(Exception e){
+		        		e.printStackTrace();
+		        	}
+		        		
+		        	mHandler.post(new Runnable() {
+		        		public void run() {		
+		        			is_log_bool = true;
+		        			if(is_sitter == false)
+		        			{
+		        				change_slide_menu_onlogin_user();
+		        			}else{
+		        				change_slide_menu_onlogin_sitter();		        				
+		        			}
+		        		}
+		        	});
+	        }
+	    }.start();
+	   }
+	
+	 @Override
+	 public void onAttach(Activity activity) 
+	 {
+		 super.onAttach(activity);
+	     try {
+	    	 mCallback = (OnFramgeChangeListener) activity;
+	     } catch (ClassCastException e) {
+	    	 throw new ClassCastException(activity.toString()
+	                    + " must implement OnHeadlineSelectedListener");
+	     }
+	 }
+	
+	private void change_slide_menu_onlogin_user()
+	{
+		right_menu.setMenu(R.layout.left_slide_menu_user);
+		LinearLayout menu1 = (LinearLayout)this.getActivity().findViewById(R.id.mn_user_menu1);
+		LinearLayout menu2 = (LinearLayout)this.getActivity().findViewById(R.id.mn_user_menu2);
+		LinearLayout menu3 = (LinearLayout)this.getActivity().findViewById(R.id.mn_user_menu3);
+		LinearLayout menu4 = (LinearLayout)this.getActivity().findViewById(R.id.mn_user_menu4);
+		LinearLayout menu5 = (LinearLayout)this.getActivity().findViewById(R.id.mn_user_menu5);
+		LinearLayout menu6 = (LinearLayout)this.getActivity().findViewById(R.id.mn_user_menu6);
+		LinearLayout menu7 = (LinearLayout)this.getActivity().findViewById(R.id.mn_user_menu7);
+		LinearLayout menu8 = (LinearLayout)this.getActivity().findViewById(R.id.mn_user_menu8);
+		
+		final Bundle bundle = getActivity().getIntent().getExtras();
+		
+		
+		menu1.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v) {
+				removeAllStack();
+				FragmentTransaction ft = getFragmentManager().beginTransaction();
+				Fragment fgm = new MessageListFragment();
+				fgm.setArguments(bundle);
+				ft.replace(R.id.fragment1, fgm);
+		        ft.setTransition(FragmentTransaction.TRANSIT_NONE);
+		        ft.addToBackStack("main");
+		        ft.commit();
+		        right_menu.showContent(true);
+			}
+        });
+		
+		menu2.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v) {
+				removeAllStack();
+				FragmentTransaction ft = getFragmentManager().beginTransaction();
+				Fragment fgm = new ReservationRequestFragment();
+				fgm.setArguments(bundle);
+				ft.replace(R.id.fragment1, fgm);
+		        ft.setTransition(FragmentTransaction.TRANSIT_NONE);
+		        ft.addToBackStack("main");
+		        ft.commit();
+		        right_menu.showContent(true);
+			}
+        });
+		
+		
+		menu3.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v) {
+				removeAllStack();
+				FragmentTransaction ft = getFragmentManager().beginTransaction();
+				ft.replace(R.id.fragment1, new BookmarkListFragment());
+		        ft.setTransition(FragmentTransaction.TRANSIT_NONE);
+		        ft.addToBackStack("main");
+		        ft.commit();
+		        right_menu.showContent(true);
+			}
+        });
+        
+		
+		menu4.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v) {
+				removeAllStack();
+				FragmentTransaction ft = getFragmentManager().beginTransaction();
+				Fragment fgm = new InformationFragment();
+				fgm.setArguments(bundle);
+				ft.replace(R.id.fragment1, fgm);
+		        ft.setTransition(FragmentTransaction.TRANSIT_NONE);
+		        ft.addToBackStack("main");
+		        ft.commit();
+		        right_menu.showContent(true);
+			}
+        });
+		
+		menu5.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v) {
+				removeAllStack();
+				FragmentTransaction ft = getFragmentManager().beginTransaction();
+				Fragment fgm = new NoticeListFragment();
+				fgm.setArguments(bundle);
+				ft.replace(R.id.fragment1, fgm);
+		        ft.setTransition(FragmentTransaction.TRANSIT_NONE);
+		        ft.addToBackStack("main");
+		        ft.commit();
+		        right_menu.showContent(true);
+			}
+        });
+		
+		menu6.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v) {
+				removeAllStack();
+				FragmentTransaction ft = getFragmentManager().beginTransaction();
+				Fragment fgm = new SupportFragment();
+				fgm.setArguments(bundle);
+				ft.replace(R.id.fragment1, fgm);
+		        ft.setTransition(FragmentTransaction.TRANSIT_NONE);
+		        ft.addToBackStack("main");
+		        ft.commit();
+		        right_menu.showContent(true);
+			}
+        });
+		
+		menu7.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v) {
+				removeAllStack();
+				FragmentTransaction ft = getFragmentManager().beginTransaction();
+				Fragment fgm = new StatementFragment();
+				fgm.setArguments(bundle);
+				ft.replace(R.id.fragment1, fgm);
+		        ft.setTransition(FragmentTransaction.TRANSIT_NONE);
+		        ft.addToBackStack("main");
+		        ft.commit();
+		        right_menu.showContent(true);
+			}
+        });
+		
+		menu8.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v)
+			{
+				mCallback.onClose();
+			}
+		});
+		
+		final TextView tv = (TextView)this.getActivity().findViewById(R.id.ls_user_nickname);
+		tv.setText(name);
+		
+		new DownloadImageTask((ImageView) this.getActivity().findViewById(R.id.ls_user_img))
+        .execute("http://img.ringpet.com/"+photo);
+	}
+	 
+	private void change_slide_menu_onlogin_sitter()
+	{
+		right_menu.setMenu(R.layout.left_slide_menu_petsitter);
+		LinearLayout menu1 = (LinearLayout)this.getActivity().findViewById(R.id.mn_menu1);
+		LinearLayout menu2 = (LinearLayout)this.getActivity().findViewById(R.id.mn_menu2);
+		//LinearLayout menu3 = (LinearLayout)this.getActivity().findViewById(R.id.mn_menu3);
+		LinearLayout menu4 = (LinearLayout)this.getActivity().findViewById(R.id.mn_menu4);
+		LinearLayout menu5 = (LinearLayout)this.getActivity().findViewById(R.id.mn_menu5);
+		LinearLayout menu6 = (LinearLayout)this.getActivity().findViewById(R.id.mn_menu6);
+		LinearLayout menu7 = (LinearLayout)this.getActivity().findViewById(R.id.mn_menu7);
+		LinearLayout menu8 = (LinearLayout)this.getActivity().findViewById(R.id.mn_menu8);
+		
+		final Bundle bundle = getActivity().getIntent().getExtras();
+		bundle.putString("id", id);
+		bundle.putString("pw", pw);
+		bundle.putString("name", name);
+		bundle.putString("photo", photo);
+		
+		ImageView left_btn = (ImageView) this.getActivity().findViewById(R.id.im_btn_main_left);
+		ImageView right_btn = (ImageView) this.getActivity().findViewById(R.id.im_btn_main_right);
+		
+		left_btn.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				right_menu.showMenu(true);
+			}
+		});
+		
+		right_btn.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				right_menu.showSecondaryMenu(true);
+			}
+		});
+		
+		menu1.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v) {
+				removeAllStack();
+				FragmentTransaction ft = getFragmentManager().beginTransaction();
+				Fragment fgm = new MessageListFragment();
+				fgm.setArguments(bundle);
+				ft.replace(R.id.fragment1, fgm);
+		        ft.setTransition(FragmentTransaction.TRANSIT_NONE);
+		        ft.addToBackStack("main");
+		        ft.commit();
+		        right_menu.showContent(true);
+			}
+        });
+		
+		menu2.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v) {
+				removeAllStack();
+				FragmentTransaction ft = getFragmentManager().beginTransaction();
+				Fragment fgm = new ReservationRequestFragment();
+				fgm.setArguments(bundle);
+				ft.replace(R.id.fragment1, fgm);
+		        ft.setTransition(FragmentTransaction.TRANSIT_NONE);
+		        ft.addToBackStack("main");
+		        ft.commit();
+		        right_menu.showContent(true);
+			}
+        });
+		
+		/*
+		menu3.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v) {
+				removeAllStack();
+				FragmentTransaction ft = getFragmentManager().beginTransaction();
+				ft.replace(R.id.fragment1, new SitterCalendarFragment());
+		        ft.setTransition(FragmentTransaction.TRANSIT_NONE);
+		        ft.addToBackStack("main");
+		        ft.commit();
+		        right_menu.showContent(true);
+			}
+        });
+        */
+		
+		menu4.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v) {
+				removeAllStack();
+				FragmentTransaction ft = getFragmentManager().beginTransaction();
+				Fragment fgm = new InformationFragment();
+				fgm.setArguments(bundle);
+				ft.replace(R.id.fragment1, fgm);
+		        ft.setTransition(FragmentTransaction.TRANSIT_NONE);
+		        ft.addToBackStack("main");
+		        ft.commit();
+		        right_menu.showContent(true);
+			}
+        });
+		
+		menu5.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v) {
+				removeAllStack();
+				FragmentTransaction ft = getFragmentManager().beginTransaction();
+				Fragment fgm = new NoticeListFragment();
+				fgm.setArguments(bundle);
+				ft.replace(R.id.fragment1, fgm);
+		        ft.setTransition(FragmentTransaction.TRANSIT_NONE);
+		        ft.addToBackStack("main");
+		        ft.commit();
+		        right_menu.showContent(true);
+			}
+        });
+		
+		menu6.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v) {
+				removeAllStack();
+				FragmentTransaction ft = getFragmentManager().beginTransaction();
+				Fragment fgm = new SupportFragment();
+				fgm.setArguments(bundle);
+				ft.replace(R.id.fragment1, fgm);
+		        ft.setTransition(FragmentTransaction.TRANSIT_NONE);
+		        ft.addToBackStack("main");
+		        ft.commit();
+		        right_menu.showContent(true);
+			}
+        });
+		
+		menu7.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v) {
+				removeAllStack();
+				FragmentTransaction ft = getFragmentManager().beginTransaction();
+				Fragment fgm = new StatementFragment();
+				fgm.setArguments(bundle);
+				ft.replace(R.id.fragment1, fgm);
+		        ft.setTransition(FragmentTransaction.TRANSIT_NONE);
+		        ft.addToBackStack("main");
+		        ft.commit();
+		        right_menu.showContent(true);
+			}
+        });
+		
+		menu8.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v)
+			{
+				mCallback.onClose();
+			}
+		});
+		
+		final TextView tv = (TextView)this.getActivity().findViewById(R.id.mn_sitter_name);
+		tv.setText(name);
+		
+		new DownloadImageTask((ImageView) this.getActivity().findViewById(R.id.mn_sitter_img))
+        .execute("http://img.ringpet.com/"+photo);
+	}
+	
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState)
+    {
+    	super.onActivityCreated(savedInstanceState);
+        right_menu = new SlidingMenu(this.getActivity());
+        right_menu.setMode(SlidingMenu.LEFT_RIGHT);
+        right_menu.setTouchModeAbove(SlidingMenu.TOUCHMODE_FULLSCREEN);
+        right_menu.setShadowWidthRes(R.dimen.slidingmenuWidth);
+        right_menu.setBehindOffsetRes(R.dimen.slidingmenuOffset);
+        right_menu.setFadeDegree(0.35f);
+        right_menu.attachToActivity(this.getActivity(), SlidingMenu.SLIDING_CONTENT);
+        right_menu.setSecondaryMenu(R.layout.right_slide_menu);
+        
+        ImageView left_btn = (ImageView) this.getActivity().findViewById(R.id.im_btn_main_left);
+		ImageView right_btn = (ImageView) this.getActivity().findViewById(R.id.im_btn_main_right);
+		
+		left_btn.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				right_menu.showMenu(true);
+			}
+		});
+		
+		right_btn.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				right_menu.showSecondaryMenu(true);
+			}
+		});
+		
+        final EditText edt_text = (EditText) this.getActivity().findViewById(R.id.ipt_search_dong);
+		edt_text.setOnEditorActionListener(new OnEditorActionListener() { 
+			public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+				switch (actionId) {
+					case EditorInfo.IME_ACTION_SEARCH:
+						InputMethodManager imm = (InputMethodManager)getActivity().getSystemService(Context.INPUT_METHOD_SERVICE); 
+						imm.hideSoftInputFromWindow(edt_text.getWindowToken(), 0);
+						searchNearList();
+						break;
+					default:
+						break;
+				}
+				return true;
+			}
+		});
+        
+        ImageView iv_btn_dong = (ImageView) this.getActivity().findViewById(R.id.btn_search_dong);
+		iv_btn_dong.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v)
+			{
+				InputMethodManager imm = (InputMethodManager)getActivity().getSystemService(Context.INPUT_METHOD_SERVICE); 
+				imm.hideSoftInputFromWindow(edt_text.getWindowToken(), 0);
+				searchNearList();
+			}
+		});
+		
+		
+		search_chk1 = (CheckBox) this.getActivity().findViewById(R.id.search_chk1);
+		search_chk1.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v)
+			{
+				searchCatList();
+			}
+		});
+		search_chk2 = (CheckBox) this.getActivity().findViewById(R.id.search_chk2);
+		search_chk2.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v)
+			{
+				searchCatList();
+			}
+		});
+		search_chk3 = (CheckBox) this.getActivity().findViewById(R.id.search_chk3);
+		search_chk3.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v)
+			{
+				searchCatList();
+			}
+		});
+		search_chk4 = (CheckBox) this.getActivity().findViewById(R.id.search_chk4);
+		search_chk4.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v)
+			{
+				searchCatList();
+			}
+		});
+		
+        
+        if(is_log_bool == false)
+        {
+        
+	        right_menu.setMenu(R.layout.left_slide_menu_guest);
+	        
+	        LinearLayout menu = (LinearLayout)this.getActivity().findViewById(R.id.mn_login);
+	        menu.setOnClickListener(new View.OnClickListener() {
+				public void onClick(View v) {
+					Intent intent = new Intent(getActivity(), MainActivity.class);
+					startActivity(intent);
+					getActivity().finish();
+				}
+	        });
+	        
+	        LinearLayout menu5 = (LinearLayout)this.getActivity().findViewById(R.id.mn_menu5);
+			LinearLayout menu6 = (LinearLayout)this.getActivity().findViewById(R.id.mn_menu6);
+			
+			menu5.setOnClickListener(new View.OnClickListener() {
+				public void onClick(View v) {
+					removeAllStack();
+					FragmentTransaction ft = getFragmentManager().beginTransaction();
+					ft.replace(R.id.fragment1, new NoticeListFragment());
+			        ft.setTransition(FragmentTransaction.TRANSIT_NONE);
+			        ft.addToBackStack("main");
+			        ft.commit();
+			        right_menu.showContent(true);
+				}
+	        });
+			
+			menu6.setOnClickListener(new View.OnClickListener() {
+				public void onClick(View v) {
+					removeAllStack();
+					FragmentTransaction ft = getFragmentManager().beginTransaction();
+					ft.replace(R.id.fragment1, new SupportFragment());
+			        ft.setTransition(FragmentTransaction.TRANSIT_NONE);
+			        ft.addToBackStack("main");
+			        ft.commit();
+			        right_menu.showContent(true);
+				}
+	        });
+			
+			LinearLayout menu_signup = (LinearLayout)this.getActivity().findViewById(R.id.mn_signup);
+			menu_signup.setOnClickListener(new View.OnClickListener() {
+				public void onClick(View v) {
+					Intent intent = new Intent(getActivity(), SignupTypeActivity.class);
+					startActivity(intent);
+					getActivity().finish();
+				}
+	        });
+        }else{
+        	change_slide_menu_onlogin_user();
+        }
+        
+        getActivity().getSupportFragmentManager().addOnBackStackChangedListener(getListener());
+	
+		loadData();
+    }
+    
+    private void loadData()
+    {
+    	lists = new ArrayList<ListModel>();
+    	dialog = ProgressDialog.show(getActivity(), "", "불러오는 중입니다. 잠시만 기다려주십시오.", true);
+    	new Thread() {
+ 		   	public void run() {
+         	   	try
+ 	           	{
+ 	           		String path = "http://api.ringpet.com/api/getSitterList";
+ 	           		HttpGetRequest hgr = new HttpGetRequest();
+ 	                String url = hgr.getHTML(path);
+ 	                try {
+ 	                    JSONObject response = new JSONObject(url);
+ 	                    JSONObject channel = response.getJSONObject("channel");
+ 	                    String result_str = channel.getString("result").toString();
+ 	                    //des_str = channel.getString("description").toString();
+ 	                    JSONArray array = channel.getJSONArray("item");
+ 	                    int length = array.length();
+ 	                    for(int i = 0; i < length; i++)
+ 	                    {
+ 	                    	ListModel lModel = new ListModel();
+ 	                    	JSONObject item = array.getJSONObject(i);
+ 	                    	lModel.setAvg(Float.parseFloat(item.getString("avg").toString()));
+ 	                    	lModel.setAvgCnt(item.getInt("review_cnt"));
+ 	                    	lModel.setBadge1(item.getInt("badge1"));
+ 	                    	lModel.setMoney(item.getInt("money"));
+ 	                    	lModel.setBadge2(item.getInt("badge2"));
+ 	                    	lModel.setBadge3(item.getInt("badge3"));
+ 	                    	lModel.setMapx(item.getString("mapx").toString());
+ 	                    	lModel.setMapy(item.getString("mapy").toString());
+ 	                    	lModel.setPhoto(item.getString("photo").toString());
+ 	                    	lModel.setPic_home(item.getString("pic_home").toString());
+ 	                    	lModel.setTitle(item.getString("title").toString());
+ 	                    	lModel.setUser_id(item.getString("user_id").toString());
+ 	                    	UrlImageViewHelper.loadUrlDrawable(getActivity(), "http://img.ringpet.com/"+lModel.getPhoto());
+ 	                    	UrlImageViewHelper.loadUrlDrawable(getActivity(), "http://img.ringpet.com/"+lModel.getPic_home());
+ 	                    	lists.add(lModel);
+ 	                    }
+ 	                    
+ 	                } catch (JSONException e) {
+ 	                    Log.d("jsonexception", e.toString());
+ 	                }
+
+ 	           	}catch(Exception e){
+ 	        		e.printStackTrace();
+ 	        	}
+ 	        		
+ 	        	mHandler.post(new Runnable() {
+ 	        		public void run() {
+ 	        			dialog.hide();
+ 	        			dialog.dismiss();
+ 	        			setListView();
+ 	        		}
+ 	        	});
+            }
+    	}.start();	
+    }
+    
+    private void searchCatList()
+    {
+    	right_menu.showContent(true);
+    	EditText ipt_edt = (EditText) this.getActivity().findViewById(R.id.ipt_search_dong);
+    	final String name = ipt_edt.getText().toString();
+    	
+    	lists = new ArrayList<ListModel>();
+    	dialog = ProgressDialog.show(getActivity(), "", "불러오는 중입니다. 잠시만 기다려주십시오.", true);
+    	new Thread() {
+ 		   	public void run() {
+         	   	try
+ 	           	{
+         	   		String path="";
+         	   		if(search_chk1.isChecked() == false && search_chk2.isChecked() == false && search_chk3.isChecked() == false && search_chk4.isChecked() == false)
+         	   		{
+         	   			path = "http://api.ringpet.com/api/getSitterList";
+         	   		}else{
+         	   			path = "http://api.ringpet.com/api/getSitterFilter?svc1="+search_chk1.isChecked()+"&svc2="+search_chk2.isChecked()+"&svc3="+search_chk3.isChecked()+"&svc4="+search_chk4.isChecked();
+         	   		}
+ 	           		HttpGetRequest hgr = new HttpGetRequest();
+ 	                String url = hgr.getHTML(path);
+ 	                try {
+ 	                    JSONObject response = new JSONObject(url);
+ 	                    JSONObject channel = response.getJSONObject("channel");
+ 	                    String result_str = channel.getString("result").toString();
+ 	                    //des_str = channel.getString("description").toString();
+ 	                    JSONArray array = channel.getJSONArray("item");
+ 	                    int length = array.length();
+ 	                    for(int i = 0; i < length; i++)
+ 	                    {
+ 	                    	ListModel lModel = new ListModel();
+ 	                    	JSONObject item = array.getJSONObject(i);
+ 	                    	lModel.setAvg(Float.parseFloat(item.getString("avg").toString()));
+ 	                    	lModel.setAvgCnt(item.getInt("review_cnt"));
+ 	                    	lModel.setBadge1(item.getInt("badge1"));
+ 	                    	lModel.setMoney(item.getInt("money"));
+ 	                    	lModel.setBadge2(item.getInt("badge2"));
+ 	                    	lModel.setBadge3(item.getInt("badge3"));
+ 	                    	lModel.setMapx(item.getString("mapx").toString());
+ 	                    	lModel.setMapy(item.getString("mapy").toString());
+ 	                    	lModel.setPhoto(item.getString("photo").toString());
+ 	                    	lModel.setPic_home(item.getString("pic_home").toString());
+ 	                    	lModel.setTitle(item.getString("title").toString());
+ 	                    	lModel.setUser_id(item.getString("user_id").toString());
+ 	                    	UrlImageViewHelper.loadUrlDrawable(getActivity(), "http://img.ringpet.com/"+lModel.getPhoto());
+ 	                    	UrlImageViewHelper.loadUrlDrawable(getActivity(), "http://img.ringpet.com/"+lModel.getPic_home());
+ 	                    	lists.add(lModel);
+ 	                    }
+ 	
+ 	                } catch (JSONException e) {
+ 	                    Log.d("jsonexception", e.toString());
+ 	                }
+
+ 	           	}catch(Exception e){
+ 	        		e.printStackTrace();
+ 	        	}
+ 	        		
+ 	        	mHandler.post(new Runnable() {
+ 	        		public void run() {
+ 	        			dialog.hide();
+ 	        			dialog.dismiss();
+ 	        			setListView();
+ 	        		}
+ 	        	});
+            }
+    	}.start();
+    }
+    
+    
+    	 
+
+    
+    private void searchNearList()
+    {
+    	
+    	right_menu.showContent(true);
+    	EditText ipt_edt = (EditText) this.getActivity().findViewById(R.id.ipt_search_dong);
+    	final String name = ipt_edt.getText().toString();
+    	
+    	lists = new ArrayList<ListModel>();
+    	dialog = ProgressDialog.show(getActivity(), "", "불러오는 중입니다. 잠시만 기다려주십시오.", true);
+    	new Thread() {
+ 		   	public void run() {
+         	   	try
+ 	           	{
+ 	           		String path = "http://api.ringpet.com/api/getSitterByLocationList?name="+URLEncoder.encode(name);
+ 	           		HttpGetRequest hgr = new HttpGetRequest();
+ 	                String url = hgr.getHTML(path);
+ 	                try {
+ 	                    JSONObject response = new JSONObject(url);
+ 	                    JSONObject channel = response.getJSONObject("channel");
+ 	                    String result_str = channel.getString("result").toString();
+ 	                    //des_str = channel.getString("description").toString();
+ 	                    JSONArray array = channel.getJSONArray("item");
+ 	                    int length = array.length();
+ 	                    for(int i = 0; i < length; i++)
+ 	                    {
+ 	                    	ListModel lModel = new ListModel();
+ 	                    	JSONObject item = array.getJSONObject(i);
+ 	                    	lModel.setAvg(Float.parseFloat(item.getString("avg").toString()));
+ 	                    	lModel.setAvgCnt(item.getInt("review_cnt"));
+ 	                    	lModel.setBadge1(item.getInt("badge1"));
+ 	                    	lModel.setMoney(item.getInt("money"));
+ 	                    	lModel.setBadge2(item.getInt("badge2"));
+ 	                    	lModel.setBadge3(item.getInt("badge3"));
+ 	                    	lModel.setMapx(item.getString("mapx").toString());
+ 	                    	lModel.setMapy(item.getString("mapy").toString());
+ 	                    	lModel.setPhoto(item.getString("photo").toString());
+ 	                    	lModel.setPic_home(item.getString("pic_home").toString());
+ 	                    	lModel.setTitle(item.getString("title").toString());
+ 	                    	lModel.setUser_id(item.getString("user_id").toString());
+ 	                    	lModel.setdistance(calcDistance(Float.parseFloat(lModel.getMapx()), Float.parseFloat(lModel.getMapy()))); 
+ 	                    	UrlImageViewHelper.loadUrlDrawable(getActivity(), "http://img.ringpet.com/"+lModel.getPhoto());
+ 	                    	UrlImageViewHelper.loadUrlDrawable(getActivity(), "http://img.ringpet.com/"+lModel.getPic_home());
+ 	                    	lists.add(lModel);
+ 	                    }
+ 	
+ 	                } catch (JSONException e) {
+ 	                    Log.d("jsonexception", e.toString());
+ 	                }
+
+ 	           	}catch(Exception e){
+ 	        		e.printStackTrace();
+ 	        	}
+ 	        		
+ 	        	mHandler.post(new Runnable() {
+ 	        		public void run() {
+ 	        			dialog.hide();
+ 	        			dialog.dismiss();
+ 	        			setListView();
+ 	        		}
+ 	        	});
+            }
+    	}.start();
+    }
+    
+    
+    
+    // 삼각함수에 의한 거리 계산
+    private int calcDistance(float x, float y)
+    {
+    	Location locationA = new Location("point A");
+
+    	locationA.setLatitude(x);
+    	locationA.setLongitude(y);
+
+    	Location locationB = new Location("point B");
+
+    	locationB.setLatitude(now_x);
+    	locationB.setLongitude(now_y);
+
+    	float distance = locationA.distanceTo(locationB);
+    	return (int) distance;
+    }
+    
+    
+    private void sortListforDistance()
+    {
+    	Collections.sort(lists, new DistanceAscCompare());
+    }
+    
+    static class DistanceAscCompare implements Comparator<ListModel> {
+    	 
+		/**
+		 * 오름차순(ASC)
+		 */
+		@Override
+		public int compare(ListModel arg0, ListModel arg1) {
+			// TODO Auto-generated method stub
+			return arg0.getdistance() < arg1.getdistance() ? -1 : arg0.getdistance() > arg1.getdistance() ? 1:0;
+		}
+ 
+	}
+
+    
+    
+    private void setListView()
+    {
+    	sortListforDistance();
+    	ListView listView = (ListView)getView().findViewById(R.id.listView1);
+        TestAdapter b1_adapter = new TestAdapter(this.getActivity(), R.layout.item_main, lists);
+		listView.setAdapter(b1_adapter);
+		
+		listView.setOnItemClickListener(new OnItemClickListener() {
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id)                
+            {
+            	FragmentManager fm = getActivity().getSupportFragmentManager();
+            	int cnt = fm.getBackStackEntryCount();
+            	
+            	if(cnt == 0)
+            	{
+            		SitterInformationFragment sif =  new SitterInformationFragment();
+            		sif.setModel(lists.get(position));
+            		FragmentTransaction ft = getFragmentManager().beginTransaction();
+            		ft.replace(R.id.fragment1, sif);
+            		ft.setTransition(FragmentTransaction.TRANSIT_NONE);
+            		ft.addToBackStack("main");
+            		ft.commit();
+            	}
+            }
+        });
+    }
+    
+    private OnBackStackChangedListener getListener()
+    {
+    	final ImageView iv = (ImageView)this.getActivity().findViewById(R.id.title_bar);
+		final TextView tv = (TextView)this.getActivity().findViewById(R.id.title_bar_img);
+        OnBackStackChangedListener result = new OnBackStackChangedListener()
+        {
+            public void onBackStackChanged() 
+            {        
+            	FragmentManager fm = getActivity().getSupportFragmentManager();
+            	int cnt = fm.getBackStackEntryCount();
+            	if(cnt == 0)
+            	{
+	            	tv.setVisibility(View.INVISIBLE);
+	            	iv.setVisibility(View.VISIBLE);
+            	}
+            }
+        };
+        return result;
+    }
+    
+    public void removeAllStack()
+    {
+    	FragmentManager fm = getActivity().getSupportFragmentManager();
+    	int cnt = fm.getBackStackEntryCount();
+        for(int i = 0; i < cnt; ++i) 	{    
+            fm.popBackStack();
+        }
+    }
+
+    public class TestAdapter extends ArrayAdapter<ListModel>{
+    	public ArrayList<ListModel> items;
+    	private Context mcontext;
+    	private int count = 0;
+    	
+    	public TestAdapter(Context context, int textViewResourceId, ArrayList<ListModel> items) {
+            super(context, textViewResourceId, items);
+            mcontext = context;
+    		this.items = items;
+    	}
+    	
+    	@Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            View v = convertView;
+            if (v == null) {
+                LayoutInflater vi = (LayoutInflater)getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+                v = vi.inflate(R.layout.item_main, null);
+            }
+            
+            ListModel areaInfo = items.get(position);
+            
+            if (areaInfo != null) {
+            	TextView title1 = (TextView) v.findViewById(R.id.im_main_title);
+            	TextView distance = (TextView) v.findViewById(R.id.im_main_distance);
+                ImageView iv = (ImageView) v.findViewById(R.id.im_main_profile);
+                ImageView iv2 = (ImageView) v.findViewById(R.id.im_main_dog);
+                
+                ImageView ico1 = (ImageView) v.findViewById(R.id.im_main_score1);
+                ImageView ico2 = (ImageView) v.findViewById(R.id.im_main_score2);
+                ImageView ico3 = (ImageView) v.findViewById(R.id.im_main_score3);
+                ImageView ico4 = (ImageView) v.findViewById(R.id.im_main_score4);
+                ImageView ico5 = (ImageView) v.findViewById(R.id.im_main_score5);
+                TextView review_score = (TextView) v.findViewById(R.id.im_main_score_cnt);
+                TextView review_cnt = (TextView) v.findViewById(R.id.im_main_score_people);
+                TextView money = (TextView) v.findViewById(R.id.im_main_price);
+                title1.setText(areaInfo.getTitle());
+                UrlImageViewHelper.setUrlDrawable(iv, "http://img.ringpet.com/"+areaInfo.getPhoto());
+                UrlImageViewHelper.setUrlDrawable(iv2, "http://img.ringpet.com/"+areaInfo.getPic_home());
+                
+                ImageView badge1 = (ImageView) v.findViewById(R.id.im_main_badge1);
+                ImageView badge2 = (ImageView) v.findViewById(R.id.im_main_badge2);
+                ImageView badge3 = (ImageView) v.findViewById(R.id.im_main_badge3);
+                
+                distance.setText(areaInfo.getdistance()+"m");
+                
+                if(areaInfo.getBadge1() == 0)
+                	badge1.setVisibility(View.INVISIBLE);
+                else
+                	badge1.setVisibility(View.VISIBLE);
+                
+                if(areaInfo.getBadge2() == 0)
+                	badge2.setVisibility(View.INVISIBLE);
+                else
+                	badge2.setVisibility(View.VISIBLE);
+                
+                if(areaInfo.getBadge3() == 0)
+                	badge3.setVisibility(View.INVISIBLE);
+                else
+                	badge3.setVisibility(View.VISIBLE);
+                
+                ico1.setImageResource(R.drawable.mn_img_review_off);
+                ico2.setImageResource(R.drawable.mn_img_review_off);
+                ico3.setImageResource(R.drawable.mn_img_review_off);
+                ico4.setImageResource(R.drawable.mn_img_review_off);
+                ico5.setImageResource(R.drawable.mn_img_review_off);
+                
+                if(areaInfo.getAvg() >= 5)
+                	ico5.setImageResource(R.drawable.mn_img_review_on);
+                
+                if(areaInfo.getAvg() >= 4)
+                	ico4.setImageResource(R.drawable.mn_img_review_on);
+                
+                if(areaInfo.getAvg() >= 3)
+                	ico3.setImageResource(R.drawable.mn_img_review_on);
+                
+                if(areaInfo.getAvg() >= 2)
+                	ico2.setImageResource(R.drawable.mn_img_review_on);
+                
+                if(areaInfo.getAvg() >= 1)
+                	ico1.setImageResource(R.drawable.mn_img_review_on);
+                if(count + 1 >= lists.size())
+                {
+                	dialog.dismiss();
+                	dialog.hide();
+                }
+                
+                review_score.setText(Float.toString(areaInfo.getAvg()));
+                review_cnt.setText("("+areaInfo.getAvgCnt()+"명)");
+                money.setText(areaInfo.getMoney()+"원/일");
+                
+                count++;
+            }
+            return v;
+        }
+    	
+    }
+
+}

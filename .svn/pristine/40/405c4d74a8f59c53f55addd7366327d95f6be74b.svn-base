@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_gravity="center"
+	android:gravity="center"
+    android:orientation="vertical" 
+    android:background="@drawable/user_guide_bg_1"
+    >
+    <LinearLayout
+        android:layout_marginTop="8.5dp"
+        android:layout_width="match_parent"
+    	android:layout_height="match_parent"
+    	android:layout_gravity="center"
+		android:gravity="center"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:orientation="vertical"
+        android:background="@drawable/user_guide_bg_2">
+        
+    <ImageView
+            android:layout_gravity="center"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="40dp"
+            android:src="@drawable/user_guide_guest_maintext_3" />
+    
+    <ImageView
+            android:layout_gravity="center"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="33.5dp"
+            android:src="@drawable/user_guide_guest_subtext_3" />
+    
+     <ImageView
+            android:layout_gravity="center"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="33dp"
+            android:src="@drawable/user_guide_guest_mainpage_3" />
+     
+      <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="31.5dp"
+        android:layout_marginBottom="17dp"
+        android:orientation="horizontal"
+        android:layout_gravity="center"
+        >
+        <ImageView
+            android:layout_gravity="center"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="9dp"
+            android:src="@drawable/user_guide_nextgray"/>
+        <ImageView
+            android:layout_gravity="center"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="9dp"
+            android:src="@drawable/user_guide_nextgray" />
+        <ImageView
+            android:layout_gravity="center"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="9dp"
+            android:src="@drawable/user_guide_nextmagenta" />
+        <ImageView
+            android:layout_gravity="center"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/user_guide_nextgray" />
+        
+           </LinearLayout>
+        </LinearLayout>
+
+</RelativeLayout>

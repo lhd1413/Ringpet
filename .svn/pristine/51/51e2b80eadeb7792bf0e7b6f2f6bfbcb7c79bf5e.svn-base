@@ -1,0 +1,282 @@
+package com.mintfish.ringpet.information;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import android.app.AlertDialog;
+import android.app.ProgressDialog;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.DialogInterface.OnClickListener;
+import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
+import android.os.Bundle;
+import android.os.Handler;
+import android.preference.PreferenceManager;
+import android.provider.MediaStore;
+import android.support.v4.app.Fragment;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+
+import com.koushikdutta.urlimageviewhelper.UrlImageViewHelper;
+import com.mintfish.ringpet.R;
+import com.mintfish.ringpet.util.HttpGetRequest;
+
+public class InformationFragment extends Fragment {
+	private String id = "";
+	private String pw = "";
+	private EditText iv_name;
+	private TextView iv_id ;
+	private EditText iv_mobile;
+	private EditText iv_address;
+	private EditText iv_password;
+	private ImageView iv_img;
+	
+	Handler mHandler = new Handler();
+
+	private int RESULT_LOAD_IMAGE = 750;
+	private static final int CAMERA_REQUEST = 1888; 
+	
+	@Override
+	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
+	{
+		Bundle b = getActivity().getIntent().getExtras();
+		if(b == null)
+		{
+			SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getActivity().getBaseContext());
+	        String saved_id = pref.getString("id", null);
+	        String saved_pw = pref.getString("pw", null);
+	        
+	        if(saved_id != null)
+	        {
+	        	id = saved_id;
+	        	pw = saved_pw;
+	        }
+		}else{
+			id = b.getString("id");
+			pw = b.getString("pw");
+		}
+        
+		return inflater.inflate(R.layout.activity_information_modify, null);
+	}
+	
+	private void showErrorAlert(String message)
+	{
+	   AlertDialog.Builder builder = new AlertDialog.Builder(this.getActivity());
+	   builder.setTitle("확인");
+	   builder.setMessage(message);
+	   builder.setNeutralButton("확인", new DialogInterface.OnClickListener() {
+           public void onClick(DialogInterface dialog, int whichButton) {                                        
+          }
+       });
+	   builder.show();
+	}
+	
+	@Override
+	public void onActivityCreated(Bundle savedInstanceState)
+	{
+		super.onActivityCreated(savedInstanceState);
+		final ImageView iv = (ImageView)this.getActivity().findViewById(R.id.title_bar);
+		final TextView tv = (TextView)this.getActivity().findViewById(R.id.title_bar_img);
+		iv.setVisibility(View.INVISIBLE);
+		tv.setVisibility(View.VISIBLE);
+		tv.setText(R.string.title_information);
+		
+		iv_name = (EditText) this.getActivity().findViewById(R.id.iv_name);
+		iv_id = (TextView) this.getActivity().findViewById(R.id.iv_id);
+		iv_mobile = (EditText) this.getActivity().findViewById(R.id.iv_mobile);
+		iv_address = (EditText) this.getActivity().findViewById(R.id.iv_address);
+		iv_password = (EditText) this.getActivity().findViewById(R.id.iv_pw);
+		iv_img = (ImageView) this.getActivity().findViewById(R.id.iv_profile);
+		
+		LinearLayout save_btn = (LinearLayout) this.getActivity().findViewById(R.id.save_btn_for_update);
+		save_btn.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v) {
+				if(iv_name.getText().toString().equals("") || iv_mobile.getText().toString().equals("") || iv_address.getText().toString().equals("") || iv_password.getText().toString().equals(""))
+				{
+					showErrorAlert("빠짐없이 입력하였는지 확인하여 주십시오.");
+				}else{
+					updateInformation();
+				}
+			}
+        });
+		
+		LinearLayout photo_btn = (LinearLayout) this.getActivity().findViewById(R.id.lv_profile);
+		photo_btn.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v) {
+				setFileUploadType();
+			}
+        });
+		
+		getInformation();
+	}
+	
+	private void setFileUploadType()
+	{
+		final String [] items=new String []{"사진 촬영하기","앨범에서 선택","취소"};
+		AlertDialog.Builder builder=new AlertDialog.Builder(getActivity());
+		builder.setTitle("Items alert");
+
+		builder.setItems(items, new OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				if(which == 0)
+				{
+					Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE); 
+	                startActivityForResult(cameraIntent, CAMERA_REQUEST); 
+				}else if(which == 1){
+					Intent i = new Intent(Intent.ACTION_PICK,android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+					startActivityForResult(i, RESULT_LOAD_IMAGE);
+				}
+			}
+		});
+
+		builder.show();
+	}
+	
+	@Override
+	public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == RESULT_LOAD_IMAGE && resultCode == android.app.Activity.RESULT_OK  && null != data) {
+            Uri selectedImage = data.getData();
+            String[] filePathColumn = { MediaStore.Images.Media.DATA };
+            Cursor cursor = getActivity().getContentResolver().query(selectedImage,filePathColumn, null, null, null);
+            cursor.moveToFirst();
+            int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
+            String picturePath = cursor.getString(columnIndex);
+            cursor.close();
+            ImageView imageView = (ImageView) getActivity().findViewById(R.id.iv_profile);
+            imageView.setImageBitmap(BitmapFactory.decodeFile(picturePath));
+        }
+        
+        if (requestCode == CAMERA_REQUEST && resultCode ==  android.app.Activity.RESULT_OK ) {  
+            Bitmap photo = (Bitmap) data.getExtras().get("data"); 
+            ImageView imageView = (ImageView) getActivity().findViewById(R.id.iv_profile);
+            imageView.setImageBitmap(photo);
+        }  
+
+    }
+	
+	private void updateInformation()
+	{
+		final ProgressDialog dialog = ProgressDialog.show(this.getActivity(), "", "확인중입니다. 잠시만 기다려주십시오.", true);
+		   new Thread() {
+			   int code = 0;
+			   Boolean login_success = false;
+			   public void run() {
+				   	try
+			       	{
+			       		String path = "http://api.ringpet.com/api/updateInformation?id="+id+"&beforepw="+pw+"&pw="+iv_password.getText().toString()+"&name="+iv_name.getText().toString()+"&address="+iv_address.getText().toString()+"&phone="+iv_mobile.getText().toString();
+						HttpGetRequest hgr = new HttpGetRequest();
+					    String url = hgr.getHTML(path);
+					    try {
+					        JSONObject response = new JSONObject(url);
+					        JSONObject channel = response.getJSONObject("channel");
+					        String code = channel.getString("result").toString();
+					
+					    } catch (JSONException e) {
+					        Log.d("jsonexception", e.toString());
+					    }
+					
+					    if(code==400){
+					    	login_success = true;
+					    }
+					    else if(code==200){
+					    	login_success = false;
+					    }
+						
+					}catch(Exception e){
+						e.printStackTrace();
+					}
+						
+					mHandler.post(new Runnable() {
+						public void run() {
+							dialog.hide();
+							if(login_success)
+							{
+								showErrorAlert("정상적으로 변경되었습니다. 감사합니다.");
+								getFragmentManager().popBackStack();
+							}else{
+								showErrorAlert("연동과정 중 문제가 발생하였습니다. 다시한번 시도하여주십시오.");
+							}
+						}	
+					});
+			   }
+		   	}.start();
+				
+		   }
+	
+	private void getInformation()
+	{
+		final ProgressDialog dialog = ProgressDialog.show(this.getActivity(), "", "확인중입니다. 잠시만 기다려주십시오.", true);
+	   new Thread() {
+		   String name = "";
+		   String photo = "";
+		   String address = "";
+		   String phone = "";
+		   int code = 0;
+		   Boolean login_success = false;
+		   public void run() {
+			   	try
+		       	{
+		       		String path = "http://api.ringpet.com/api/getInformation?id="+id+"&pw="+pw;
+					HttpGetRequest hgr = new HttpGetRequest();
+				    String url = hgr.getHTML(path);
+				    try {
+				        JSONObject response = new JSONObject(url);
+				        JSONObject channel = response.getJSONObject("channel");
+				        String result_str = channel.getString("result").toString();
+				        //des_str = channel.getString("description").toString();
+				        JSONObject item = channel.getJSONObject("item");
+				        name = item.getString("name").toString();
+				        photo = item.getString("photo").toString();
+				        address = item.getString("address").toString();
+				        phone = item.getString("phone").toString();
+				
+				    } catch (JSONException e) {
+				        Log.d("jsonexception", e.toString());
+				    }
+				
+				    if(code==400){
+				    	login_success = true;
+				    }
+				    else if(code==200){
+				    	login_success = false;
+				    }
+					
+				}catch(Exception e){
+					e.printStackTrace();
+				}
+					
+				mHandler.post(new Runnable() {
+					public void run() {
+						if(login_success)
+						{
+							Log.e("login", "success");
+						}
+						dialog.dismiss();
+						dialog.hide();
+						iv_name.setText(name);
+						iv_id.setText(id);
+						iv_password.setText(pw);
+						iv_address.setText(address);
+						iv_mobile.setText(phone);
+						UrlImageViewHelper.setUrlDrawable(iv_img, "http://img.ringpet.com/"+photo);
+					}	
+				});
+		   }
+	   	}.start();
+			
+	   }
+
+
+}

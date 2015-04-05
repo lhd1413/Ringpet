@@ -1,0 +1,583 @@
+package com.mintfish.ringpet.signup;
+
+import java.net.URLEncoder;
+import java.util.regex.Pattern;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import com.mintfish.ringpet.R;
+import com.mintfish.ringpet.util.HttpGetRequest;
+
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.ProgressDialog;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnClickListener;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
+import android.os.Bundle;
+import android.os.Handler;
+import android.preference.PreferenceManager;
+import android.provider.MediaStore;
+import android.text.InputFilter;
+import android.text.Spanned;
+import android.util.Log;
+import android.view.View;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+
+public class SignupPetSitterInformationActivity extends Activity {
+	private String sitter_title = "";
+	private String sitter_introduce = "";
+	private String sitter_exp = "";
+	private int sitter_home_type = 0;
+	private int sitter_own_type = 0;
+	private int sitter_care_type = 0;
+	
+	private int sitter_chk_opt1 = 0;
+	private int sitter_fee_opt1 = 0;
+	
+	private int sitter_chk_opt2 = 0;
+	private int sitter_fee_opt2 = 0;
+	
+	private int sitter_chk_opt3 = 0;
+	private int sitter_fee_opt3 = 0;
+	
+	private int sitter_chk_opt4 = 0;
+	private int sitter_fee_opt4 = 0;
+	
+	private int sitter_chk_opt5 = 0;
+	private int sitter_fee_opt5 = 0;
+	
+	private boolean sitter = false;
+	
+	private EditText ipt_id;
+	private EditText ipt_name;
+	private EditText ipt_pw;
+	private EditText ipt_pw_confirm;
+	private EditText ipt_address;
+	private EditText ipt_phone;
+	private EditText ipt_confirm;
+	Handler mHandler = new Handler();
+	private Boolean id_chk;
+	private Boolean phone_chk;
+	private Boolean send_chk;
+	private Boolean favorite_sw;
+	private SharedPreferences pref;
+	private int RESULT_LOAD_IMAGE = 750;
+	private static final int CAMERA_REQUEST = 1888;
+	
+	public InputFilter filterKor = new InputFilter() {
+        public CharSequence filter(CharSequence source, int start, int end, Spanned dest, int dstart, int dend) {
+        		Pattern ps = Pattern.compile("^[§°-§”∞°-∆R]*$"); 
+                if (!ps.matcher(source).matches()) {
+                	return "";
+                } 
+                return null;
+        }
+    };
+	
+	@Override
+    protected void onCreate(Bundle savedInstanceState) {
+		favorite_sw = false;
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_signup_information);
+        pref = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+        ipt_id = (EditText) findViewById(R.id.su_edit_id);
+        ipt_name = (EditText) findViewById(R.id.su_edit_name);
+        ipt_pw = (EditText) findViewById(R.id.su_edit_pw);
+        ipt_pw_confirm = (EditText) findViewById(R.id.su_edit_pw_confirm);
+        ipt_address = (EditText) findViewById(R.id.su_edit_address);
+        ipt_phone = (EditText) findViewById(R.id.su_edit_phone);
+        ipt_confirm = (EditText) findViewById(R.id.su_edit_phone_confirm);
+        
+        ipt_name.setFilters(new InputFilter[] {filterKor});
+
+        
+        id_chk = false;
+        phone_chk = false;
+        send_chk = false;
+        
+        ipt_id.setText("");
+        ipt_name.setText("");
+        ipt_pw.setText("");
+        ipt_pw_confirm.setText("");
+        ipt_address.setText("");
+        ipt_phone.setText("");
+        ipt_confirm.setText("");
+        
+        sitter = getIntent().getBooleanExtra("isSitter", false);
+        sitter_title = getIntent().getStringExtra("title");
+        sitter_introduce = getIntent().getStringExtra("introduction");
+        sitter_exp = getIntent().getStringExtra("exp");
+        sitter_home_type = getIntent().getIntExtra("type1", 0);
+        sitter_own_type = getIntent().getIntExtra("type2", 0);
+        sitter_care_type = getIntent().getIntExtra("type3", 0);
+        sitter_chk_opt1 = getIntent().getIntExtra("chk1", 0);
+        sitter_chk_opt2 = getIntent().getIntExtra("chk2", 0);
+        sitter_chk_opt3 = getIntent().getIntExtra("chk3", 0);
+        sitter_chk_opt4 = getIntent().getIntExtra("chk4", 0);
+        sitter_chk_opt5 = getIntent().getIntExtra("chk5", 0);
+        sitter_fee_opt1 = getIntent().getIntExtra("fee1", 0);
+        sitter_fee_opt2 = getIntent().getIntExtra("fee2", 0);
+        sitter_fee_opt3 = getIntent().getIntExtra("fee3", 0);
+        sitter_fee_opt4 = getIntent().getIntExtra("fee4", 0);
+        sitter_fee_opt5 = getIntent().getIntExtra("fee5", 0);
+        
+        
+        if(sitter == true)
+        {
+        	ImageView iv = (ImageView) findViewById(R.id.title_img);
+        	iv.setImageResource(R.drawable.su_img_petsitter);
+        }
+         
+        
+        LinearLayout imageView = (LinearLayout) findViewById(R.id.lv_profile);
+        imageView.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v) {
+				setFileUploadType();
+			}
+        });
+        
+        LinearLayout lv = (LinearLayout) findViewById(R.id.lv_sign);
+        lv.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v) {
+				JoinMember();
+			}
+        });
+        
+        Button chk_id = (Button) findViewById(R.id.su_chk_id_btn);
+        chk_id.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v) {
+				if(ipt_id.getText().toString().equals(""))
+				{
+					showErrorAlert("æ∆¿Ãµ∏¶ ¿‘∑¬«œø© ¡÷Ω Ω√ø¿.");
+				}else{
+					checkId(ipt_id.getText().toString());
+				}
+			}
+        });
+        
+        Button chk_phone = (Button) findViewById(R.id.su_chk_phone_btn);
+        chk_phone.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v) {
+				if(ipt_phone.getText().toString().equals(""))
+				{
+					showErrorAlert("»ﬁ¥Î∆˘ π¯»£∏¶ ¿‘∑¬«œø© ¡÷Ω Ω√ø¿.");
+				}else{
+					sendCaptcha(ipt_phone.getText().toString());
+				}
+				
+			}
+        });
+        
+        Button chk_phone_captcha = (Button) findViewById(R.id.su_chk_captcha_btn);
+        chk_phone_captcha.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v) {
+				if(send_chk == true)
+				{
+					if(ipt_confirm.getText().toString().equals(""))
+					{
+						showErrorAlert("»Æ¿Œ π¯»£∏¶ ¿‘∑¬«œø© ¡÷Ω Ω√ø¿.");
+					}else{
+						checkCaptcha(ipt_confirm.getText().toString());
+					}
+				}else{
+					showErrorAlert("¿”Ω√ ¿Œ¡ıπ¯»£∏¶ πﬂ±ﬁπﬁæ“¥¬¡ˆ »Æ¿Œ«œø© ¡÷Ω Ω√ø¿.");
+				}
+			}
+        });
+	}
+	
+	private void showErrorAlert(String message)
+	{
+	   AlertDialog.Builder builder = new AlertDialog.Builder(this);
+	   builder.setTitle("»Æ¿Œ");
+	   builder.setMessage(message);
+	   builder.setNeutralButton("»Æ¿Œ", new DialogInterface.OnClickListener() {
+           public void onClick(DialogInterface dialog, int whichButton) {                                        
+          }
+       });
+	   builder.show();
+	}
+	
+	private void JoinMember()
+	{
+		if(ipt_id.getText().toString().equals("") || ipt_pw.getText().toString().equals("") || ipt_name.getText().toString().equals("") || ipt_address.getText().toString().equals("") || ipt_phone.getText().toString().equals(""))
+		{
+			showErrorAlert("∫¸¡¸æ¯¿Ã ¿‘∑¬«œø¥¥¬¡ˆ »Æ¿Œ«œø© ¡÷Ω Ω√ø¿.");
+			return;
+		}
+		
+		if(!ipt_pw.getText().toString().equals(ipt_pw_confirm.getText().toString()))
+		{
+			showErrorAlert("∫Òπ–π¯»£ »Æ¿Œ∂ı¿Ã ¥Ÿ∏®¥œ¥Ÿ. ¥ŸΩ√«—π¯ »Æ¿Œ«œø© ¡÷Ω Ω√ø¿.");
+			return;
+		}
+		
+		if(id_chk == false)
+		{
+			showErrorAlert("æ∆¿Ãµ ¡ﬂ∫π»Æ¿Œ¿ª «ÿ ¡÷Ω Ω√ø¿.");
+			return;
+		}
+		
+		if(phone_chk == false)
+		{
+			showErrorAlert("»ﬁ¥Î¿¸»≠π¯»£ ¿Œ¡ı¿ª «ÿ ¡÷Ω Ω√ø¿.");
+			return;
+		}
+		
+		String join_id = ipt_id.getText().toString();
+		String join_pw = ipt_pw.getText().toString();
+		String join_name = ipt_name.getText().toString();
+		String join_address = ipt_address.getText().toString();
+		String join_number = ipt_phone.getText().toString();
+		
+		Intent intent = new Intent(SignupPetSitterInformationActivity.this, SignupPetSitterPetActivity.class);
+		
+		if(sitter == true)
+		{
+			intent.putExtra("isSitter", sitter);
+			intent.putExtra("title", sitter_title);
+			intent.putExtra("introduction", sitter_introduce);
+			intent.putExtra("exp", sitter_exp);
+			intent.putExtra("type1", sitter_home_type);
+			intent.putExtra("type2", sitter_own_type);
+			intent.putExtra("type3", sitter_care_type);
+			intent.putExtra("chk1", sitter_chk_opt1);
+			intent.putExtra("chk2", sitter_chk_opt2);
+			intent.putExtra("chk3", sitter_chk_opt3);
+			intent.putExtra("chk4", sitter_chk_opt4);
+			intent.putExtra("chk5", sitter_chk_opt5);
+			intent.putExtra("fee1", sitter_fee_opt1);
+			intent.putExtra("fee2", sitter_fee_opt2);
+			intent.putExtra("fee3", sitter_fee_opt3);
+			intent.putExtra("fee4", sitter_fee_opt4);
+			intent.putExtra("fee5", sitter_fee_opt5);
+		}
+		
+		intent.putExtra("join_id", join_id);
+		intent.putExtra("join_pw", join_pw);
+		intent.putExtra("join_name", join_name);
+		intent.putExtra("join_address", join_address);
+		intent.putExtra("join_number", join_number);
+		
+		startActivity(intent);
+		finish();
+		
+		/*
+		final ProgressDialog dialog = ProgressDialog.show(this, "", "»Æ¿Œ¡ﬂ¿‘¥œ¥Ÿ. ¿·Ω√∏∏ ±‚¥Ÿ∑¡¡÷Ω Ω√ø¿.", true);
+		   new Thread() {
+	           int code = 0;
+	           Boolean join_success = false;
+	           public void run() {
+	        	   	try
+		           	{
+		           		String path = "http://api.ringpet.com/api/registerMember?id="+ipt_id.getText().toString()+"&pw="+ipt_pw.getText().toString()+"&name="+URLEncoder.encode(ipt_name.getText().toString())+"&address="+URLEncoder.encode(ipt_address.getText().toString())+"&number="+ipt_phone.getText().toString();
+		           		HttpGetRequest hgr = new HttpGetRequest();
+		                String url = hgr.getHTML(path);
+		                try {
+		                    JSONObject response = new JSONObject(url);
+		                    JSONObject channel = response.getJSONObject("channel");
+		                    String result_str = channel.getString("result").toString();
+		                    code = Integer.parseInt(result_str);
+		
+		                } catch (JSONException e) {
+		                    Log.d("jsonexception", e.toString());
+		                }
+		
+		                if(code==400){
+		                	join_success = true;
+		                }
+		                else if(code==200){
+		                	join_success = false;
+		                }
+		           		
+		           	}catch(Exception e){
+		        		e.printStackTrace();
+		        	}
+		        		
+		        	mHandler.post(new Runnable() {
+		        		public void run() {
+		        			dialog.dismiss();
+		        			dialog.hide();
+		        			
+		        			if(join_success == false)
+		        			{
+		        				showErrorAlert("∞°¿‘ ¿˝¬˜ ¡ﬂ πÆ¡¶∞° πﬂª˝«œø¥Ω¿¥œ¥Ÿ. ¥ŸΩ√«—π¯ Ω√µµ«œø© ¡÷Ω Ω√ø¿.");
+		        			}else{
+		        				checkSitter();
+		        			}
+		        		}
+		        	});
+	        }
+	    }.start();	
+		*/
+		
+	}
+	
+	/*
+	private void checkSitter()
+	{
+		if(sitter == false)
+		{
+			SharedPreferences.Editor editor = pref.edit();
+			editor.putString("id", ipt_id.getText().toString());
+			editor.putString("pw", ipt_pw.getText().toString());
+			editor.commit();
+			Intent intent = new Intent(SignupPetSitterInformationActivity.this, SignupPetSitterPetActivity.class);
+			startActivity(intent);
+			finish();
+		}else{
+			final ProgressDialog dialog = ProgressDialog.show(this, "", "∆ÍΩ√≈Õ ¡§∫∏ µÓ∑œ¡ﬂ¿‘¥œ¥Ÿ. ¿·Ω√∏∏ ±‚¥Ÿ∑¡¡÷Ω Ω√ø¿.", true);
+			   new Thread() {
+		           int code = 0;
+		           Boolean join_success = false;
+		           public void run() {
+		        	   	try
+			           	{
+			           		String path = "http://api.ringpet.com/api/registerSitter?id="+ipt_id.getText().toString()+"&title="+URLEncoder.encode(sitter_title)+"&introduction="+URLEncoder.encode(sitter_introduce)+"&career="+URLEncoder.encode(sitter_exp)+"&sitter_house="+sitter_home_type+"&sitter_full_time="+sitter_care_type+"&sitter_house="+sitter_home_type+"&sitter_money="+sitter_fee_opt1+"&sitter_bath="+sitter_fee_opt2+"&sitter_walk="+sitter_fee_opt3+"&sitter_hair="+sitter_fee_opt4+"&sitter_pickup="+sitter_fee_opt5;
+			           		HttpGetRequest hgr = new HttpGetRequest();
+			                String url = hgr.getHTML(path);
+			                try {
+			                    JSONObject response = new JSONObject(url);
+			                    JSONObject channel = response.getJSONObject("channel");
+			                    String result_str = channel.getString("result").toString();
+			                    code = Integer.parseInt(result_str);
+			
+			                } catch (JSONException e) {
+			                    Log.d("jsonexception", e.toString());
+			                }
+			
+			                if(code==400){
+			                	join_success = true;
+			                }
+			                else if(code==200){
+			                	join_success = false;
+			                }
+			           		
+			           	}catch(Exception e){
+			        		e.printStackTrace();
+			        	}
+			        		
+			        	mHandler.post(new Runnable() {
+			        		public void run() {
+			        			dialog.dismiss();
+			        			dialog.hide();
+			        			
+			        			if(join_success == false)
+			        			{
+			        				showErrorAlert("∞°¿‘ ¿˝¬˜ ¡ﬂ πÆ¡¶∞° πﬂª˝«œø¥Ω¿¥œ¥Ÿ. ¥ŸΩ√«—π¯ Ω√µµ«œø© ¡÷Ω Ω√ø¿.");
+			        			}else{
+			        				Intent intent = new Intent(SignupPetSitterInformationActivity.this, SignupPetSitterPetActivity.class);
+			        				startActivity(intent);
+			        				finish();
+			        			}
+			        		}
+			        	});
+		        }
+		    }.start();	
+		}
+	}
+	*/
+	
+	
+	private void sendCaptcha(final String phone_number)
+	{
+		new Thread() {
+				int code = 0;
+			   public void run() {
+				   
+	        	   	try
+		           	{	
+	        	   		InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE); 
+	    				imm.hideSoftInputFromWindow(ipt_phone.getWindowToken(), 0);	
+	    				
+		           		String path = "http://api.ringpet.com/api/generateCaptcha?number="+phone_number;
+		           		HttpGetRequest hgr = new HttpGetRequest();
+		                String url = hgr.getHTML(path);
+		                try {
+		                    JSONObject response = new JSONObject(url);
+		                    JSONObject channel = response.getJSONObject("channel");
+		                    String result_str = channel.getString("result").toString();
+		                    code = Integer.parseInt(result_str);
+		                    if(code == 0)
+		                    {
+		                    	
+		                    }
+		                } catch (JSONException e) {
+		                    Log.d("jsonexception", e.toString());
+		                }
+		           	}catch(Exception e){
+		        		e.printStackTrace();
+		        	}
+	        	   	
+		        	mHandler.post(new Runnable() {
+		        		public void run() {
+		        			if(code == 400)
+		        			{
+			        			LinearLayout confirm_layout = (LinearLayout) findViewById(R.id.confirm_phone);
+			        			confirm_layout.setVisibility(View.VISIBLE);
+			        			Button chk_phone = (Button) findViewById(R.id.su_chk_phone_btn);
+			        			chk_phone.setBackgroundResource(R.drawable.su_btn_gray);
+			        			chk_phone.setText("¿Á¿¸º€");
+			        			send_chk = true;
+		        			}else{
+		        				showErrorAlert("¿ÃπÃ ∞°¿‘«œºÃ∞≈≥™ ¿ﬂ∏¯µ» »ﬁ¥Î¿¸»≠ π¯»£¿‘¥œ¥Ÿ.");
+		        			}
+		        		}
+		        	});
+	        }
+	    }.start();	
+		
+	}
+	
+	private void checkId(final String chk_id)
+	{
+		final ProgressDialog dialog = ProgressDialog.show(this, "", "»Æ¿Œ¡ﬂ¿‘¥œ¥Ÿ. ¿·Ω√∏∏ ±‚¥Ÿ∑¡¡÷Ω Ω√ø¿.", true);
+		   new Thread() {
+			   int code = 0;
+	           public void run() {
+	        	   	try
+		           	{
+	        	   		InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE); 
+	    				imm.hideSoftInputFromWindow(ipt_id.getWindowToken(), 0);	
+		           		String path = "http://api.ringpet.com/api/getIdConfirm?id="+chk_id;
+		           		HttpGetRequest hgr = new HttpGetRequest();
+		                String url = hgr.getHTML(path);
+		                try {
+		                    JSONObject response = new JSONObject(url);
+		                    JSONObject channel = response.getJSONObject("channel");
+		                    String result_str = channel.getString("result").toString();
+		                    code = Integer.parseInt(result_str);
+		
+		                } catch (JSONException e) {
+		                    Log.d("jsonexception", e.toString());
+		                }
+		           	}catch(Exception e){
+		        		e.printStackTrace();
+		        	}
+		        		
+		        	mHandler.post(new Runnable() {
+		        		public void run() {
+		        			if(code==400){
+			                	id_chk = true;
+			                	showErrorAlert("ªÁøÎ«œº≈µµ ±¶¬˙¿∫ æ∆¿Ãµ¿‘¥œ¥Ÿ.");
+			                }
+			                else if(code==200){
+			                	id_chk = false;
+			                	showErrorAlert("¿ÃπÃ ªÁøÎ¡ﬂ¿Œ æ∆¿Ãµ∞° ¿÷Ω¿¥œ¥Ÿ. ¥Ÿ∏• æ∆¿Ãµ∏¶ ¿‘∑¬«ÿ¡÷ººø‰.");
+			                }else{
+			                	id_chk = false;
+			                	showErrorAlert("º≠πˆø° πÆ¡¶∞° πﬂª˝«œø¥Ω¿¥œ¥Ÿ. ¥ŸΩ√ Ω√µµ«œø©¡÷Ω Ω√ø¿.");
+			                }
+		        			dialog.dismiss();
+		        			dialog.hide();
+		        		}
+		        	});
+	        }
+	    }.start();	
+	}
+	
+	private void setFileUploadType()
+	{
+		final String [] items=new String []{"ªÁ¡¯ √‘øµ«œ±‚","æŸπ¸ø°º≠ º±≈√","√Îº“"};
+		AlertDialog.Builder builder=new AlertDialog.Builder(this);
+		builder.setTitle("ªÁ¡¯ º±≈√«œ±‚");
+
+		builder.setItems(items, new OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				if(which == 0)
+				{
+					Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE); 
+	                startActivityForResult(cameraIntent, CAMERA_REQUEST); 
+				}else if(which == 1){
+					Intent i = new Intent(Intent.ACTION_PICK,android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+					startActivityForResult(i, RESULT_LOAD_IMAGE);
+				}
+			}
+		});
+
+		builder.show();
+	}
+	
+	@Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == RESULT_LOAD_IMAGE && resultCode == RESULT_OK && null != data) {
+            Uri selectedImage = data.getData();
+            String[] filePathColumn = { MediaStore.Images.Media.DATA };
+            Cursor cursor = getContentResolver().query(selectedImage,filePathColumn, null, null, null);
+            cursor.moveToFirst();
+            int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
+            String picturePath = cursor.getString(columnIndex);
+            cursor.close();
+            ImageView imageView = (ImageView) findViewById(R.id.img_profile);
+            imageView.setImageBitmap(BitmapFactory.decodeFile(picturePath));
+        }
+        
+        if (requestCode == CAMERA_REQUEST && resultCode == RESULT_OK) {  
+            Bitmap photo = (Bitmap) data.getExtras().get("data"); 
+            ImageView imageView = (ImageView) findViewById(R.id.img_profile);
+            imageView.setImageBitmap(photo);
+        }  
+
+    }
+	
+	private void checkCaptcha(final String captcha)
+	{
+		final ProgressDialog dialog = ProgressDialog.show(this, "", "»Æ¿Œ¡ﬂ¿‘¥œ¥Ÿ. ¿·Ω√∏∏ ±‚¥Ÿ∑¡¡÷Ω Ω√ø¿.", true);
+		   new Thread() {
+			   int code = 0;
+	           
+	           public void run() {
+	        	   	try
+		           	{
+	        	   		InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE); 
+	    				imm.hideSoftInputFromWindow(ipt_confirm.getWindowToken(), 0);
+		           		String path = "http://api.ringpet.com/api/checkCaptcha?number="+ipt_phone.getText().toString()+"&captcha="+captcha;
+		           		HttpGetRequest hgr = new HttpGetRequest();
+		                String url = hgr.getHTML(path);
+		                try {
+		                    JSONObject response = new JSONObject(url);
+		                    JSONObject channel = response.getJSONObject("channel");
+		                    String result_str = channel.getString("result").toString();
+		                    code = Integer.parseInt(result_str);
+		
+		                } catch (JSONException e) {
+		                    Log.d("jsonexception", e.toString());
+		                }
+		           	}catch(Exception e){
+		        		e.printStackTrace();
+		        	}
+		        		
+		        	mHandler.post(new Runnable() {
+		        		public void run() {
+		        			if(code==400){
+			                	phone_chk = true;
+			                	showErrorAlert("»Æ¿Œµ«æ˙Ω¿¥œ¥Ÿ. ∞®ªÁ«’¥œ¥Ÿ.");
+			                }
+			                else if(code==200){
+			                	phone_chk = false;
+			                	showErrorAlert("¿ﬂ∏¯µ» ¿Œ¡ıπ¯»£¿‘¥œ¥Ÿ. ¥ŸΩ√ ¿‘∑¬«ÿ¡÷ººø‰.");
+			                }else{
+			                	showErrorAlert("º≠πˆø° πÆ¡¶∞° πﬂª˝«œø¥Ω¿¥œ¥Ÿ. ¥ŸΩ√ Ω√µµ«œø©¡÷Ω Ω√ø¿.");
+			                }
+		        			dialog.dismiss();
+		        			dialog.hide();
+		        		}
+		        	});
+	        }
+	    }.start();	
+	}
+}

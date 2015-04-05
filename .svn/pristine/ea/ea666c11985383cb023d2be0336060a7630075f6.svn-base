@@ -1,0 +1,86 @@
+package com.mintfish.ringpet.model;
+
+public class ReservationListModel {
+	private String _sitter_title;
+	private String _user_name;
+	private String _user_photo;
+	private String _start_date;
+	private String _end_date;
+	private String _reg_date;
+	private String _fee;
+	
+	public ReservationListModel()
+	{
+		
+	}
+	
+	public void setSitterTitle(String val)
+	{
+		_sitter_title = val;
+	}
+	
+	public String getSitterTitle()
+	{
+		return _sitter_title;
+	}
+	
+	public void setUserName(String val)
+	{
+		_user_name = val;
+	}
+	
+	public String getUserName()
+	{
+		return _user_name;
+	}
+	
+	public void setUserPhoto(String val)
+	{
+		_user_photo = val;
+	}
+	
+	public String getUserPhoto()
+	{
+		return _user_photo;
+	}
+	
+	public void setStartDate(String val)
+	{
+		_start_date = val;
+	}
+	
+	public String getStartDate()
+	{
+		return _start_date;
+	}
+	
+	public void setEndDate(String val)
+	{
+		_end_date = val;
+	}
+	
+	public String getEndDate()
+	{
+		return _end_date;
+	}
+	
+	public void setRegDate(String val)
+	{
+		_reg_date = val;
+	}
+	
+	public String getRegDate()
+	{
+		return _reg_date;
+	}
+	
+	public void setFee(String val)
+	{
+		_fee = val;
+	}
+	
+	public String getFee()
+	{
+		return _fee;
+	}
+}

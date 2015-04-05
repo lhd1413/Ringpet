@@ -1,0 +1,118 @@
+package com.mintfish.ringpet;
+
+
+import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
+import android.os.Bundle;
+import android.os.Parcelable;
+import android.support.v4.view.PagerAdapter;
+import android.support.v4.view.ViewPager;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.view.Window;
+import android.widget.ImageButton;
+import android.widget.ImageView;
+
+import com.mintfish.ringpet.signup.SignupSitterIntroductionActivity;
+import com.mintfish.ringpet.signup.SignupTypeActivity;
+
+public class UserGuidePetsitterActivity extends Activity implements OnClickListener{
+	private ViewPager mPager;
+
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		requestWindowFeature(Window.FEATURE_NO_TITLE);//상단바 제거
+		setContentView(R.layout.activity_user_guide_guest_main);
+		
+		setLayout();
+		
+		mPager = (ViewPager)findViewById(R.id.pager);
+		mPager.setAdapter(new PagerAdapterClass(getApplicationContext()));
+	}
+
+	@Override
+	public void onClick(View v) {
+	
+	}
+	
+
+	private ImageView btn_one;
+	
+	
+
+	private void setLayout(){
+		btn_one = (ImageView) findViewById(R.id.btn_one);
+		
+		
+		btn_one.setOnClickListener(new ImageButton.OnClickListener(){
+			public void onClick(View v){
+				Intent intent = new Intent(UserGuidePetsitterActivity.this, SignupSitterIntroductionActivity.class);
+				startActivity(intent);
+			}
+		});
+		
+	}
+	
+	
+	
+	/**
+	 * PagerAdapter 
+	 */
+	private class PagerAdapterClass extends PagerAdapter{
+		
+		private LayoutInflater mInflater;
+
+		public PagerAdapterClass(Context c){
+			super();
+			mInflater = LayoutInflater.from(c);
+		}
+		
+		@Override
+		public int getCount() {
+			return 5;
+		}
+
+		@Override
+		public Object instantiateItem(View pager, int position) {
+			View v = null;
+    		if(position==0){
+    			v = mInflater.inflate(R.layout.activity_user_guide_petsitter_1, null);	
+    		}
+    		else if(position==1){
+    			v = mInflater.inflate(R.layout.activity_user_guide_petsitter_2, null);
+    			
+    		}else if(position==2){
+    			v = mInflater.inflate(R.layout.activity_user_guide_petsitter_3, null);
+    			
+    		}else if(position==3) {
+    			v = mInflater.inflate(R.layout.activity_user_guide_petsitter_4, null);
+    		}else {
+    			v = mInflater.inflate(R.layout.activity_user_guide_petsitter_5, null);
+    		}
+    			
+    		
+    		((ViewPager)pager).addView(v, 0);
+    		
+    		return v; 
+		}
+
+		@Override
+		public void destroyItem(View pager, int position, Object view) {	
+			((ViewPager)pager).removeView((View)view);
+		}
+		
+		@Override
+		public boolean isViewFromObject(View pager, Object obj) {
+			return pager == obj; 
+		}
+
+		@Override public void restoreState(Parcelable arg0, ClassLoader arg1) {}
+		@Override public Parcelable saveState() { return null; }
+		@Override public void startUpdate(View arg0) {}
+		@Override public void finishUpdate(View arg0) {}
+	}
+	
+}
